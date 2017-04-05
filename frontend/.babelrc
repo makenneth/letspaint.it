@@ -1,0 +1,14 @@
+{
+  "passPerPreset": true,
+  "presets": [
+    { "plugins": [ "transform-runtime" ] },
+    {
+      "passPerPreset": false,
+      "presets": ["react", "es2015", "stage-0"],
+    }
+  ],
+  "plugins": [
+    "add-module-exports",
+    "transform-decorators-legacy"
+  ]
+}
