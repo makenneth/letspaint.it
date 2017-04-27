@@ -2,6 +2,8 @@ import store from 'reduxHandler/store';
 import { paintInputMade } from 'actions';
 import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
+const ACTUAL_CANVAS_WIDTH = IMAGE_WIDTH * 5;
+
 export default class Canvas {
   constructor(canvas, width, height) {
     this.canvas = canvas;
@@ -29,13 +31,15 @@ export default class Canvas {
 
   handleClick = (ev) => {
     const { layerX, layerY } = ev;
+    const y = Math.floor((layerY - 2) / 5);
+    const x = Math.floor((layerX - 2) / 5);
     const input = {
       color: [
         Math.floor(Math.random() * 256),
         Math.floor(Math.random() * 256),
         Math.floor(Math.random() * 256),
       ],
-      pos: { x: layerX, y: layerY }
+      pos: { x, y }
     };
 
     store.dispatch(paintInputMade(input));
@@ -44,16 +48,20 @@ export default class Canvas {
   getImageData() {
     const data = this.currentValue;
     const newImageData = new Uint8ClampedArray(IMAGE_WIDTH * IMAGE_HEIGHT * 25 * 4);
-    const col = [0, 4, 8, 12, 16];
+    const offsets = [0, 4, 8, 12, 16];
 
     for (let i = 0; i < data.length; i += 4) {
+      const col = (i % IMAGE_WIDTH) * 5;
+      const row = (i - (i % IMAGE_WIDTH)) * 25;
+
       for (let j = 0; j < 5; j++) {
-        const k = 5 * 4 * IMAGE_WIDTH * j;
-        col.forEach((col) => {
-          newImageData[k + i + col] = data[i];
-          newImageData[k + i + 1 + col] = data[i + 1];
-          newImageData[k + i + 2 + col] = data[i + 2];
-          newImageData[k + i + 3 + col] = data[i + 3];
+        const k = row + 5 * 4 * IMAGE_WIDTH * j;
+
+        offsets.forEach((offset) => {
+          newImageData[k + col + offset] = data[i];
+          newImageData[k + col + offset + 1] = data[i + 1];
+          newImageData[k + col + offset + 2] = data[i + 2];
+          newImageData[k + col + offset + 3] = data[i + 3];
         });
       }
     }
@@ -62,6 +70,7 @@ export default class Canvas {
 
   draw() {
     this.context.clearRect(0, 0, this.width, this.height);
+
     this.context.putImageData(this.getImageData(), 0, 0);
   }
 }

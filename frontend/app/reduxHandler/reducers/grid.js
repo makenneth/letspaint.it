@@ -3,7 +3,6 @@ import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 const initialImageData = (width, height) => {
   const data = new Uint8ClampedArray(width * height * 4);
-
   for (let i = 0; i < data.length; i += 4) {
     data[i] = 255;
     data[i + 1] = 255;
@@ -14,20 +13,13 @@ const initialImageData = (width, height) => {
   return data;
 }
 
-// const checkIndex = (startIdx, idx, width) => {
-//   if (idx >= startIdx && idx <= startIdx + 20) {
-//     return true
-//   }
-
-//   //
-// }
 
 const initialState = {
   data: initialImageData(100, 100),
 }
 
 const updatePixel = (data, pos, color) => {
-  const startIdx = (pos.x * 4 * IMAGE_WIDTH) + (pos.y * 4);
+  const startIdx = (pos.y * 4 * IMAGE_WIDTH) + (pos.x * 4);
   const updatedData = new Uint8ClampedArray(data.length);
 
   for (let i = 0; i < data.length; i += 4) {
