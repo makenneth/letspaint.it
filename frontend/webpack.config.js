@@ -38,7 +38,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loaders: 'style-loader!css-loader?-autoprefixer!postcss-loader',
+        loader: 'style-loader!css-loader?-autoprefixer!postcss-loader',
       },
       { test: /\.json$/, loader: 'json-loader' },
       {
@@ -57,6 +57,12 @@ module.exports = {
     extensions: ['', '.js', '.jsx'],
     alias: {
       components: path.resolve(__dirname, 'app/components/'),
+      assets: path.resolve(__dirname, 'app/assets/'),
+      actions: path.resolve(__dirname, 'app/reduxHandler/actions'),
+      actionTypes: path.resolve(__dirname, 'app/reduxHandler/actionTypes'),
+      constants: path.resolve(__dirname, 'app/reduxHandler/constants'),
+      reducers: path.resolve(__dirname, 'app/reduxHandler/reducers'),
+      reduxHandler: path.resolve(__dirname, 'app/reduxHandler/'),
     }
   },
   plugins: [
