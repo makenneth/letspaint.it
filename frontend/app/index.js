@@ -5,9 +5,7 @@ import { render } from 'react-dom';
 import { Route, Router, browserHistory } from 'react-router';
 import { Provider } from 'react-redux';
 import Application from 'components/Application';
-import createStore from './store';
-
-const store = createStore();
+import store from './reduxHandler/store';
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<Provider store={store}>

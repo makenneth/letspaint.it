@@ -1,4 +1,5 @@
 import ActionTypes from 'actionTypes';
+import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 const initialImageData = (width, height) => {
   const data = new Uint8ClampedArray(width * height * 4);
@@ -10,7 +11,7 @@ const initialImageData = (width, height) => {
     data[i + 3] = 255;
   }
 
-  return new ImageData(data, width, height);
+  return data;
 }
 
 // const checkIndex = (startIdx, idx, width) => {
@@ -22,28 +23,32 @@ const initialImageData = (width, height) => {
 // }
 
 const initialState = {
-  data: initialImageData(500, 500),
+  data: initialImageData(100, 100),
 }
 
-const updatePixel = (imageData, pos, color) => {
-  const startIdx = (pos.x * 4 * 500) + (pos.y * 4);
-  const updatedData = new Uint8ClampedArray(imageData.data.length);
-  const newImageData = new ImageData(imageData.width, imageData.height);
+const updatePixel = (data, pos, color) => {
+  const startIdx = (pos.x * 4 * IMAGE_WIDTH) + (pos.y * 4);
+  const updatedData = new Uint8ClampedArray(data.length);
 
-  for (let i = 0; i < imageData.data.length; i += 4) {
+  for (let i = 0; i < data.length; i += 4) {
     let r;
     let g;
     let b;
-    // if (checkIndex(startIdx, i)) {
-      // ([r, g, b]) = color;
-    // } else {
-    r = imageData.data[i];
-    g = imageData.data[i + 1];
-    b = imageData.data[i + 2];
-    // }
+    if (i === startIdx) {
+      ([r, g, b] = color);
+    } else {
+      r = data[i];
+      g = data[i + 1];
+      b = data[i + 2];
+    }
+
+    updatedData[i] = r;
+    updatedData[i + 1] = g;
+    updatedData[i + 2] = b;
+    updatedData[i + 3] = 255;
   }
 
-  return new ImageData(updatedData, imageData.width, imageData.height);
+  return updatedData;
 };
 
 export default function Grid(state = initialState, action) {
@@ -51,9 +56,9 @@ export default function Grid(state = initialState, action) {
     case ActionTypes.PAINT_INPUT_RECEIVED:
     case ActionTypes.PAINT_INPUT_MADE: {
       const { pos, color } = action.input;
-      const updatedImageData = updatePixel(state.data, pos, color)
+      const currentImageState = updatePixel(state.data, pos, color)
       return {
-        data: updatedImageData,
+        data: currentImageState,
       };
     }
     case ActionTypes.INITIAL_STATE_UPDATE:

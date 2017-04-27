@@ -1,5 +1,6 @@
 import store from 'reduxHandler/store';
 import { paintInputMade } from 'actions';
+import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 export default class Canvas {
   constructor(canvas, width, height) {
@@ -34,14 +35,33 @@ export default class Canvas {
         Math.floor(Math.random() * 256),
         Math.floor(Math.random() * 256),
       ],
-      pos: { x: layerX - (layerX % 25), y: layerY - (layerY % 25 )}
+      pos: { x: layerX, y: layerY }
     };
 
     store.dispatch(paintInputMade(input));
   }
 
+  getImageData() {
+    const data = this.currentValue;
+    const newImageData = new Uint8ClampedArray(IMAGE_WIDTH * IMAGE_HEIGHT * 25 * 4);
+    const col = [0, 4, 8, 12, 16];
+
+    for (let i = 0; i < data.length; i += 4) {
+      for (let j = 0; j < 5; j++) {
+        const k = 5 * 4 * IMAGE_WIDTH * j;
+        col.forEach((col) => {
+          newImageData[k + i + col] = data[i];
+          newImageData[k + i + 1 + col] = data[i + 1];
+          newImageData[k + i + 2 + col] = data[i + 2];
+          newImageData[k + i + 3 + col] = data[i + 3];
+        });
+      }
+    }
+    return new ImageData(newImageData, IMAGE_WIDTH * 5, IMAGE_HEIGHT * 5);
+  }
+
   draw() {
     this.context.clearRect(0, 0, this.width, this.height);
-    this.context.putImageData(this.currentValue, 0, 0);
+    this.context.putImageData(this.getImageData(), 0, 0);
   }
 }

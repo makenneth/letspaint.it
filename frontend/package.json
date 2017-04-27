@@ -1,5 +1,5 @@
 {
-  "name": "rabb.it",
+  "name": "letsdraw.it",
   "version": "1.0.0",
   "description": "- App to be decided... LOL",
   "main": "index.js",
@@ -15,9 +15,9 @@
   "author": "Kenneth Ma",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/makenneth/rabb.it/issues"
+    "url": "https://github.com/makenneth/letsdraw.it/issues"
   },
-  "homepage": "https://github.com/makenneth/rabb.it#readme",
+  "homepage": "https://github.com/makenneth/letsdraw.it#readme",
   "dependencies": {
     "babel-core": "^6.24.0",
     "babel-plugin-transform-runtime": "^6.23.0",

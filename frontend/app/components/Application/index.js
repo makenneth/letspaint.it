@@ -1,6 +1,6 @@
 import React from 'react';
 import Main from 'components/Main';
-
+import 'assets/reset.css';
 import './styles.scss';
 
 class Application extends React.PureComponent {
