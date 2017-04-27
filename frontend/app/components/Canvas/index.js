@@ -2,8 +2,6 @@ import store from 'reduxHandler/store';
 import { paintInputMade } from 'actions';
 import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
-const ACTUAL_CANVAS_WIDTH = IMAGE_WIDTH * 5;
-
 export default class Canvas {
   constructor(canvas, width, height) {
     this.canvas = canvas;
@@ -12,8 +10,14 @@ export default class Canvas {
     this.context = canvas.getContext('2d');
     this.unsubscribe = store.subscribe(this.handleStoreChange);
     this.currentValue = this.select(store.getState());
+    this.currentCoord = [];
     this.canvas.addEventListener('click', this.handleClick);
     this.draw();
+  }
+
+  unmount() {
+    this.unsubscribe();
+    this.canvas.removeListener('click', this.handleClick);
   }
 
   select(state) {
@@ -25,14 +29,15 @@ export default class Canvas {
     this.currentValue = this.select(store.getState());
 
     if (this.currentValue !== previousValue) {
+      this.changed = true;
       this.draw();
     }
   }
 
   handleClick = (ev) => {
     const { layerX, layerY } = ev;
-    const y = Math.floor((layerY - 2) / 5);
-    const x = Math.floor((layerX - 2) / 5);
+    const y = Math.floor((layerY) / 5);
+    const x = Math.floor((layerX) / 5);
     const input = {
       color: [
         Math.floor(Math.random() * 256),
@@ -49,13 +54,13 @@ export default class Canvas {
     const data = this.currentValue;
     const newImageData = new Uint8ClampedArray(IMAGE_WIDTH * IMAGE_HEIGHT * 25 * 4);
     const offsets = [0, 4, 8, 12, 16];
-
+    let isHovering = false;
     for (let i = 0; i < data.length; i += 4) {
       const col = (i % IMAGE_WIDTH) * 5;
       const row = (i - (i % IMAGE_WIDTH)) * 25;
 
       for (let j = 0; j < 5; j++) {
-        const k = row + 5 * 4 * IMAGE_WIDTH * j;
+        const k = row + (5 * 4 * IMAGE_WIDTH * j);
 
         offsets.forEach((offset) => {
           newImageData[k + col + offset] = data[i];
@@ -65,6 +70,7 @@ export default class Canvas {
         });
       }
     }
+
     return new ImageData(newImageData, IMAGE_WIDTH * 5, IMAGE_HEIGHT * 5);
   }
 
