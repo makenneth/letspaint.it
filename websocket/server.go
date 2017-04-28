@@ -5,11 +5,12 @@ import (
   "encoding/json"
   "golang.org/x/net/websocket"
   "log"
+  "strconv"
 )
 
 type Message struct {
-  messageType string `json:"type"`
-  data json.RawMessage `json:"data"`
+  MessageType string `json:"type"`
+  Data json.RawMessage `json:"data"`
 }
 
 type Server struct {
@@ -53,6 +54,7 @@ func (self *Server) Listen() {
   for {
     select {
       case c := <-self.connect:
+        c.Username += strconv.Itoa(len(self.clients) + 1)
         log.Printf("client %s connected", c.Username)
         self.clients = append(self.clients, c)
       case c := <-self.done:

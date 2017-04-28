@@ -34,6 +34,7 @@ func (self *Client) ListenWrite() {
   for {
     select {
     case msg := <-self.send:
+      log.Println("sending message to client %s", self.Username)
       websocket.JSON.Send(self.ws, msg)
     case <-self.done:
       self.server.RemoveClient() <-self
@@ -53,7 +54,9 @@ func (self *Client) ListenRead() {
     default:
       var msg Message
       err := websocket.JSON.Receive(self.ws, &msg)
+      log.Println("received message", msg)
       if err != nil {
+        log.Println("err in %s...", self.Username)
         self.done <- true
       } else {
         self.server.Broadcast() <- &msg
