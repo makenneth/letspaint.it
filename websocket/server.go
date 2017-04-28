@@ -1,12 +1,15 @@
 package websocket
 
 import (
+  "net/http"
+  "encoding/json"
   "golang.org/x/net/websocket"
+  "log"
 )
 
-type Message {
-  messageType string
-  message string
+type Message struct {
+  messageType string `json:"type"`
+  data json.RawMessage `json:"data"`
 }
 
 type Server struct {
@@ -14,7 +17,7 @@ type Server struct {
   clients []*Client
   connect chan *Client
   done chan *Client
-  send chan *Message
+  broadcast chan *Message
 }
 
 func (self *Server) AddClient() chan<- *Client{
@@ -25,17 +28,17 @@ func (self *Server) RemoveClient() chan<- *Client {
   return (chan <- *Client)(self.done)
 }
 
-func (self *Server) SendMessage() chan<- *Message {
-  return (chan <- *Message)(self.send)
+func (self *Server) Broadcast() chan<- *Message {
+  return (chan <- *Message)(self.broadcast)
 }
 
-func newServer(path) *Server {
+func NewServer(path string) *Server {
   clients := make([]*Client, 0)
   connect := make(chan *Client)
   done := make(chan *Client)
-  send := make(chan *Message)
+  broadcast := make(chan *Message)
 
-  return &Server{path, clients, connect, done, send}
+  return &Server{path, clients, connect, done, broadcast}
 }
 
 func (self *Server) Listen() {
@@ -54,19 +57,16 @@ func (self *Server) Listen() {
         self.clients = append(self.clients, c)
       case c := <-self.done:
         log.Printf("client %s disconnected", c.Username)
-        var clientIdx int
         for i := range self.clients {
           if self.clients[i] == c {
             self.clients = append(self.clients[:i], self.clients[i+1:]...)
             break
           }
         }
-      case msg := <-self.send:
-        log.Printf("client %s send %s", c.Username, msg)
+      case msg := <-self.broadcast:
         for _, c := range self.clients {
           c.Write() <- msg
         }
-      default:
-        log.Println('unrecognize message')
     }
+  }
 }
