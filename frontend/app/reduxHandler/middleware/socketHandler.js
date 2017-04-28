@@ -6,10 +6,12 @@ export const socketMiddleware = (store) => next => action => {
   if (!socket) return next(action);
   switch (action.type) {
     case ActionTypes.PAINT_INPUT_MADE:
-      socket.send(JSON.stringify({
-        type: 'PAINT_INPUT_MADE',
-        data: action.payload,
-      }));
+      socket.send(
+        JSON.stringify({
+          type: 'PAINT_INPUT_MADE',
+          data: action.payload,
+        })
+      );
       break;
     default:
       break;
@@ -19,8 +21,9 @@ export const socketMiddleware = (store) => next => action => {
 }
 
 export default function startWebSocket({ getState, dispatch }) {
-  const url = `${process.env.WS_URL}/ws`;
-  socket = new WebSocket(url);
+  // console.log(process.env.WS_URL);
+  const url = `localhost:4001/ws`;
+  socket = new WebSocket(`ws://${url}`);
 
   const messageHandler = (res) => {
     const { type, data } = JSON.parse(res.data);
