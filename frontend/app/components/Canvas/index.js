@@ -24,6 +24,10 @@ export default class Canvas {
     return state.grid.data;
   }
 
+  selectColor(state) {
+    return state.grid.color;
+  }
+
   handleStoreChange = () => {
     const previousValue = this.currentValue;
     this.currentValue = this.select(store.getState());
@@ -39,12 +43,8 @@ export default class Canvas {
     const y = Math.floor((layerY) / 5);
     const x = Math.floor((layerX) / 5);
     const input = {
-      color: [
-        Math.floor(Math.random() * 256),
-        Math.floor(Math.random() * 256),
-        Math.floor(Math.random() * 256),
-      ],
-      pos: { x, y }
+      color: this.selectColor(store.getState()),
+      pos: { x, y },
     };
 
     store.dispatch(paintInputMade(input));
@@ -55,6 +55,7 @@ export default class Canvas {
     const newImageData = new Uint8ClampedArray(IMAGE_WIDTH * IMAGE_HEIGHT * 25 * 4);
     const offsets = [0, 4, 8, 12, 16];
     let isHovering = false;
+
     for (let i = 0; i < data.length; i += 4) {
       const col = (i % IMAGE_WIDTH) * 5;
       const row = (i - (i % IMAGE_WIDTH)) * 25;

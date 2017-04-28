@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Canvas from 'components/Canvas';
 import ColorPicker from './ColorPicker';
 
-class Main extends Component {
+export default class Main extends Component {
   state = {
     top: null,
     left: null,
@@ -18,6 +18,8 @@ class Main extends Component {
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
   }
 
+  toggleColorPicker = () => this.setState({ colorPickerOpen: true });
+
   handleMouseMove = (ev) => {
     const { layerX, layerY } = ev;
     const top = layerY - (layerY % 5) + 2.1;
@@ -26,7 +28,7 @@ class Main extends Component {
   }
 
   render() {
-    const { top, left } = this.state;
+    const { top, left, colorPickerOpen } = this.state;
     return (
       <div className="main-container">
         <div className="canvas-container">
@@ -47,5 +49,3 @@ class Main extends Component {
     );
   }
 }
-
-export default Main;

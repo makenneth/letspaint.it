@@ -20,3 +20,10 @@ export function initialStateUpdate(data) {
     state,
   };
 }
+
+export function pickColor(idx) {
+  return {
+    type: ActionTypes.COLOR_PICKED,
+    color: idx,
+  };
+}

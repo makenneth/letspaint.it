@@ -1,5 +1,6 @@
 import ActionTypes from 'actionTypes';
 import { IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
+import colors from 'constants/colors';
 
 const initialImageData = (width, height) => {
   const data = new Uint8ClampedArray(width * height * 4);
@@ -13,9 +14,9 @@ const initialImageData = (width, height) => {
   return data;
 }
 
-
 const initialState = {
   data: initialImageData(100, 100),
+  color: 32,
 }
 
 const updatePixel = (data, pos, color) => {
@@ -27,7 +28,7 @@ const updatePixel = (data, pos, color) => {
     let g;
     let b;
     if (i === startIdx) {
-      ([r, g, b] = color);
+      ([r, g, b] = colors[color]);
     } else {
       r = data[i];
       g = data[i + 1];
@@ -45,16 +46,22 @@ const updatePixel = (data, pos, color) => {
 
 export default function Grid(state = initialState, action) {
   switch (action.type) {
+    case ActionTypes.COLOR_PICKED:
+      return {
+        ...state,
+        color: action.color,
+      };
     case ActionTypes.PAINT_INPUT_RECEIVED:
     case ActionTypes.PAINT_INPUT_MADE: {
       const { pos, color } = action.input;
-      const currentImageState = updatePixel(state.data, pos, color)
       return {
-        data: currentImageState,
+        ...state,
+        data: updatePixel(state.data, pos, color),
       };
     }
     case ActionTypes.INITIAL_STATE_UPDATE:
       return {
+        ...state,
         grid: action.state,
       };
 
