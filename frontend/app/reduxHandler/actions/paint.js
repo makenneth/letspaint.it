@@ -17,7 +17,7 @@ export function paintInputReceived(input) {
 export function initialStateUpdate(data) {
   return {
     type: ActionTypes.INITIAL_STATE_UPDATE,
-    state,
+    grid: data.grid,
   };
 }
 

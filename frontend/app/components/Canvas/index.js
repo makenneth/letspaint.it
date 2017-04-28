@@ -33,7 +33,6 @@ export default class Canvas {
     this.currentValue = this.select(store.getState());
 
     if (this.currentValue !== previousValue) {
-      this.changed = true;
       this.draw();
     }
   }
@@ -44,7 +43,7 @@ export default class Canvas {
     const x = Math.floor((layerX) / 5);
     const input = {
       color: this.selectColor(store.getState()),
-      pos: { x, y },
+      pos: (y * IMAGE_WIDTH) + x,
     };
 
     store.dispatch(paintInputMade(input));

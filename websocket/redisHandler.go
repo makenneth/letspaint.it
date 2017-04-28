@@ -3,12 +3,13 @@ package websocket
 import (
   "log"
   "strconv"
+  "encoding/json"
   "github.com/go-redis/redis"
 )
 
 type GridData struct {
-  Pos int
-  Color int8
+  Pos int `json:"pos"`
+  Color int8 `json:"color"`
 }
 
 type RedisHandler struct {
@@ -28,13 +29,12 @@ func (self *RedisHandler) GetBoard() []int8{
     color, _ := strconv.Atoi(val)
     board[i] = int8(color)
   }
-
   return board
 }
 
 func (self *RedisHandler) Update(msg *Message) {
   var data GridData
-  err := json.Unmarshal(&data)
+  err := json.Unmarshal(msg.Data, &data)
   if err != nil {
     log.Println("json unmarshalling error")
   }
@@ -44,4 +44,5 @@ func (self *RedisHandler) Update(msg *Message) {
     log.Println("Redis update failed")
     return
   }
+  log.Printf("successfully updated %s", key)
 }

@@ -19,15 +19,30 @@ const initialState = {
   color: 32,
 }
 
+const setGrid = (grid) => {
+  const updatedData = new Uint8ClampedArray(grid.length * 4);
+
+  for (let i = 0; i < grid.length; i++) {
+    const startIdx = i * 4;
+    const pixelColor = grid[i];
+    updatedData[startIdx] = colors[pixelColor][0];
+    updatedData[startIdx + 1] = colors[pixelColor][1];
+    updatedData[startIdx + 2] = colors[pixelColor][2];
+    updatedData[startIdx + 3] = 255;
+  }
+
+  return updatedData;
+}
+
 const updatePixel = (data, pos, color) => {
-  const startIdx = (pos.y * 4 * IMAGE_WIDTH) + (pos.x * 4);
+  const startPos = pos * 4;
   const updatedData = new Uint8ClampedArray(data.length);
 
   for (let i = 0; i < data.length; i += 4) {
     let r;
     let g;
     let b;
-    if (i === startIdx) {
+    if (i === startPos) {
       ([r, g, b] = colors[color]);
     } else {
       r = data[i];
@@ -62,7 +77,7 @@ export default function Grid(state = initialState, action) {
     case ActionTypes.INITIAL_STATE_UPDATE:
       return {
         ...state,
-        grid: action.state,
+        data: setGrid(action.grid),
       };
 
     default:

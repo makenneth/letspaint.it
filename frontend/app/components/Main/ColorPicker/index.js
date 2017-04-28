@@ -16,33 +16,31 @@ export default class ColorPicker extends Component {
   render() {
     const { colorPickerOpen } = this.state;
     const { pickedColor } = this.props;
-    console.log(colors.length);
-    console.log(pickedColor);
-    console.log(colors[pickedColor])
+
     return (
       <div className="color-picker">
-        <div className="color-input">
-          <i className="material-icons" onClick={this.toggleColorPicker}>format_color_fill</i>
+        <div className="color-input" onClick={this.toggleColorPicker}>
+          <i className="material-icons">format_color_fill</i>
           <div
             className="picked-color"
             style={{
               backgroundColor: `rgb(${colors[pickedColor].join(', ')})`
             }}
           />
+          {
+            colorPickerOpen &&
+              <div className="color-picker-popover" onClick={ev => ev.stopPropagation()}>
+                {colors.map((color, i) => (
+                  <div
+                    key={i}
+                    className="color"
+                    style={{ backgroundColor: `rgb(${color.join(', ')})` }}
+                    onClick={() => this.props.pickColor(i)}
+                  />
+                ))}
+              </div>
+          }
         </div>
-        {
-          colorPickerOpen &&
-            <div className="color-picker-popover">
-              {colors.map((color, i) => (
-                <div
-                  key={i}
-                  className="color"
-                  style={{ backgroundColor: `rgb(${color.join(', ')})` }}
-                  onClick={() => this.props.pickColor(i)}
-                />
-              ))}
-            </div>
-        }
       </div>
     );
   }

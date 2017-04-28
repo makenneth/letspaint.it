@@ -44,8 +44,8 @@ func NewServer(path string) *Server {
   connect := make(chan *Client)
   done := make(chan *Client)
   broadcast := make(chan *Message)
-
-  return &Server{path, clients, connect, done, broadcast}
+  board := make([]int8, 0)
+  return &Server{path, clients, connect, done, broadcast, board}
 }
 
 func (self *Server) Listen() {
@@ -61,10 +61,11 @@ func (self *Server) Listen() {
     DB:       0,  // use default DB
   })
 
-  pong, err := client.Ping().Result()
+  _, err := redisCli.Ping().Result()
   if err != nil {
     log.Fatal("Failed to connect to redis")
   }
+  log.Println("Successfully connected to redis")
   handler := RedisHandler{redisCli}
   defer redisCli.Close()
 
@@ -76,8 +77,7 @@ func (self *Server) Listen() {
         c.Username += strconv.Itoa(len(self.clients) + 1)
         log.Printf("client %s connected", c.Username)
         self.clients = append(self.clients, c)
-
-        data, _ := json.Marhsal(&{InitialState{self.board}})
+        data, _ := json.Marshal(&InitialState{self.board})
         c.Write() <- &Message{"INITIAL_STATE", data}
       case c := <-self.done:
         log.Printf("client %s disconnected", c.Username)
@@ -88,8 +88,8 @@ func (self *Server) Listen() {
           }
         }
       case m := <-self.broadcast:
-        go self.updateBoard(&m)
-        go handle.Update(&m)
+        go self.updateBoard(m)
+        go handler.Update(m)
         for _, c := range self.clients {
           c.Write() <- m
         }
@@ -99,10 +99,9 @@ func (self *Server) Listen() {
 
 func (self *Server) updateBoard(msg *Message) {
   var data GridData
-  err := json.Unmarshal(&data)
+  err := json.Unmarshal(msg.Data, &data)
   if err != nil {
     log.Println("json unmarshalling error")
   }
-
   self.board[data.Pos] = data.Color
 }

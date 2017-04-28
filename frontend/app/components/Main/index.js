@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Canvas from 'components/Canvas';
 import ColorPicker from './ColorPicker';
 
+import './styles.scss';
+
 export default class Main extends Component {
   state = {
     top: null,
@@ -44,7 +46,13 @@ export default class Main extends Component {
             />
           }
         </div>
-        <ColorPicker />
+        <div className="user-controls">
+          <ColorPicker />
+          <div className="zoom-control">
+            <i className="material-icons">zoom_in</i>
+            <i className="material-icons">zoom_out</i>
+          </div>
+        </div>
       </div>
     );
   }

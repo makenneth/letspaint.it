@@ -1,0 +1,89 @@
+.hover-effect {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  box-shadow: inset 0px 0px 0px 50px rgba(122,122,122,0.5);
+  pointer-events: none;
+}
+
+.canvas-container {
+  box-sizing: content-box;
+  border: 1px solid black;
+  width: 500px;
+  height: 500px;
+}
+
+.main-container {
+  display: flex;
+}
+
+.color-picker-popover {
+  position: absolute;
+  top: 100%;
+  left: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  width: 252px;
+  height: 252px;
+  background-color: #e0e0e0;
+
+  .color {
+    border-radius: 3px;
+    margin: 2px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: inset 0px 0px 0px 50px rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.color-picker {
+  cursor: pointer;
+
+  .color-input {
+    position: relative;
+    display: flex;
+
+    .picked-color {
+      border-radius: 3px;
+      border: 3px solid black;
+      width: 25px;
+      height: 25px;
+    }
+
+    &:hover {
+      i {
+        color: rgba(black, 0.75);
+      }
+
+      .picked-color {
+        border-color: rgba(black, 0.75);
+      }
+    }
+  }
+}
+
+.user-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.zoom-control {
+  display: flex;
+  flex-direction: column;
+
+  i {
+    cursor: pointer;
+    font-size: 30px;
+
+    &:hover {
+      color: rgba(black, 0.75);
+    }
+  }
+}
+
