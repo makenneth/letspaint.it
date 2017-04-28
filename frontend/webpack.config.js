@@ -60,7 +60,8 @@ module.exports = {
       assets: path.resolve(__dirname, 'app/assets/'),
       actions: path.resolve(__dirname, 'app/reduxHandler/actions'),
       actionTypes: path.resolve(__dirname, 'app/reduxHandler/actionTypes'),
-      constants: path.resolve(__dirname, 'app/reduxHandler/constants'),
+      constants: path.resolve(__dirname, 'app/constants'),
+      middleware: path.resolve(__dirname, 'app/reduxHandler/middleware'),
       reducers: path.resolve(__dirname, 'app/reduxHandler/reducers'),
       reduxHandler: path.resolve(__dirname, 'app/reduxHandler/'),
     }
