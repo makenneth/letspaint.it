@@ -71,6 +71,7 @@ func (self *Server) Listen() {
 
   http.Handle(self.path, websocket.Handler(onConnected))
   self.board = handler.GetBoard()
+  log.Println("get board done")
   for {
     select {
       case c := <-self.connect:

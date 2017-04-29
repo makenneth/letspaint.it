@@ -20,8 +20,6 @@ export default class Main extends Component {
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
   }
 
-  toggleColorPicker = () => this.setState({ colorPickerOpen: true });
-
   handleMouseMove = (ev) => {
     const { layerX, layerY } = ev;
     const top = layerY - (layerY % 5) + 2.1;

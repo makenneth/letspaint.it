@@ -24,7 +24,6 @@ export default function startWebSocket({ getState, dispatch }) {
 
   const messageHandler = (res) => {
     const { type, data } = JSON.parse(res.data);
-    console.log(type, data);
     switch (type) {
       case 'PAINT_INPUT_MADE':
         dispatch(paintInputReceived(data));

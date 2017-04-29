@@ -15,7 +15,7 @@ const initialImageData = (width, height) => {
 }
 
 const initialState = {
-  data: initialImageData(100, 100),
+  data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
   color: 32,
 }
 

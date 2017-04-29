@@ -12,7 +12,7 @@ func main() {
     DB:       0,  // use default DB
   })
 
-  for i := 0; i < 10000; i++ {
+  for i := 0; i < 250000; i++ {
     key := "grid:" + strconv.Itoa(i)
     err := redisCli.Set(key, 32, 0).Err()
     if err != nil {

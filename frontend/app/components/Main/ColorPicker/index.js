@@ -9,6 +9,12 @@ export default class ColorPicker extends Component {
     colorPickerOpen: false,
   };
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.pickedColor !== nextProps.pickedColor) {
+      this.setState({ colorPickerOpen: false });
+    }
+  }
+
   toggleColorPicker = () => {
     this.setState({ colorPickerOpen: !this.state.colorPickerOpen });
   }
