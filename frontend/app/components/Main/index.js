@@ -1,10 +1,17 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
 import Canvas from 'components/Canvas';
 import ColorPicker from './ColorPicker';
 
 import './styles.scss';
 
+@connect(({ auth: { username }, grid: { usernames } }) => ({ username, usernames }))
 export default class Main extends Component {
+  static propTypes = {
+    username: PropTypes.string,
+    usernames: PropTypes.array,
+  }
+
   state = {
     top: null,
     left: null,
@@ -22,13 +29,15 @@ export default class Main extends Component {
 
   handleMouseMove = (ev) => {
     const { layerX, layerY } = ev;
-    const top = layerY - (layerY % 5) + 2.1;
-    const left = layerX - (layerX % 5) + 1;
+    const top = layerY - (layerY % 5);
+    const left = layerX - (layerX % 5);
     this.setState({ top, left });
   }
 
   render() {
     const { top, left, colorPickerOpen } = this.state;
+    const { usernames } = this.props;
+
     return (
       <div className="main-container">
         <div className="canvas-container">
@@ -41,7 +50,17 @@ export default class Main extends Component {
             <div
               className="hover-effect"
               style={{ top: `${top}px`, left: `${left}px` }}
-            />
+            >
+              <div className="tooltip">
+                <div className="coord">
+                  <span>X:<span>{left / 5}</span></span>
+                  <span>Y:<span>{top / 5}</span></span>
+                </div>
+                <div className="username">
+                  <span>Taken By:<span>{usernames[top * 100 + left / 5]}</span></span>
+                </div>
+              </div>
+            </div>
           }
         </div>
         <div className="user-controls">

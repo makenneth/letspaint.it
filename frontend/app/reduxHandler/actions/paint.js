@@ -1,12 +1,18 @@
 import ActionTypes from 'actionTypes';
 
 export function paintInputMade(input) {
+  return (dispatch, getState) => {
+    const { username } = getState().auth;
+    dispatch(makePaintInput(Object.assign({}, input, { username })));
+  };
+}
+
+function makePaintInput(input) {
   return {
     type: ActionTypes.PAINT_INPUT_MADE,
     input,
   };
 }
-
 export function paintInputReceived(input) {
   return {
     type: ActionTypes.PAINT_INPUT_RECEIVED,

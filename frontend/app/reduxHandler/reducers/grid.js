@@ -16,7 +16,12 @@ const initialImageData = (width, height) => {
 
 const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
+  usernames: new Array(IMAGE_WIDTH * IMAGE_HEIGHT),
   color: 32,
+}
+
+const setUsernames = (grid) => {
+  return grid.map(pixel => pixel.username);
 }
 
 const setGrid = (grid) => {
@@ -24,7 +29,7 @@ const setGrid = (grid) => {
 
   for (let i = 0; i < grid.length; i++) {
     const startIdx = i * 4;
-    const pixelColor = grid[i];
+    const { color: pixelColor } = grid[i];
     updatedData[startIdx] = colors[pixelColor][0];
     updatedData[startIdx + 1] = colors[pixelColor][1];
     updatedData[startIdx + 2] = colors[pixelColor][2];
@@ -59,6 +64,14 @@ const updatePixel = (data, pos, color) => {
   return updatedData;
 };
 
+const updateUsernames = (data, pos, username) => {
+  return [
+    ...data.slice(0, pos),
+    username,
+    ...data.slice(pos + 1),
+  ];
+}
+
 export default function Grid(state = initialState, action) {
   switch (action.type) {
     case ActionTypes.COLOR_PICKED:
@@ -68,16 +81,18 @@ export default function Grid(state = initialState, action) {
       };
     case ActionTypes.PAINT_INPUT_RECEIVED:
     case ActionTypes.PAINT_INPUT_MADE: {
-      const { pos, color } = action.input;
+      const { pos, color, username } = action.input;
       return {
         ...state,
         data: updatePixel(state.data, pos, color),
+        usernames: updateUsernames(state.usernames, pos, username),
       };
     }
     case ActionTypes.INITIAL_STATE_UPDATE:
       return {
         ...state,
         data: setGrid(action.grid),
+        usernames: setUsernames(action.grid),
       };
 
     default:
