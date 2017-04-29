@@ -45,36 +45,67 @@ export default class Canvas {
     }
   }
 
-  handleMouseMove = (ev) => {
-    const { layerX, layerY } = ev;
-    const [prevX, prevY] = this.startMousePos;
-    const diffX = layerX - prevX;
-    const diffY = layerY - prevY;
+  updateCenter(mouseX, mouseY) {
+    const [prevX, prevY] = this.currentMousePos;
+    const diffX = Math.ceil((mouseX - prevX) / 2);
+    const diffY = Math.ceil((mouseY - prevY) / 2);
     this.changed = true;
-    this.center[0] = this.center[0] - diffX >= 250 ? (this.center[0] - diffX) : 250;
-    this.center[1] = this.center[1] - diffX >= 250 ? (this.center[1] - diffX) : 250;
+    const centerX = this.center[0] - diffX;
+    const centerY = this.center[1] - diffY;
+    let posX, posY;
+    if (centerX <= 250) {
+      posX = 250;
+    // why 650?
+    } else if (centerX > 650) {
+      posX = 650;
+    } else {
+      posX = centerX;
+    }
 
-    this.currentMousePos = [layerX, layerY];
-    setTimeout(() => this.draw(), 30);
+    if (centerY <= 250) {
+      posY = 250;
+    } else if (centerY > 650) {
+      posY = 650;
+    } else {
+      posY = centerY;
+    }
+
+    this.center = [posX, posY];
   }
 
-  handleMouseUp = () => {
+  handleMouseMove = (ev) => {
+    const { layerX, layerY } = ev;
+    this.updateCenter(layerX, layerY);
+    this.currentMousePos = [layerX, layerY];
+  }
+
+  handleMouseUp = ({ layerX, layerY }) => {
+    if (this.cursorTO) {
+      clearTimeout(this.cursorTO);
+    }
+    this.canvas.style.cursor = 'default';
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
     this.canvas.removeEventListener('mouseup', this.handleMouseUp);
     if (this.startMousePos === this.currentMousePos) {
-      const y = Math.floor((this.startMousePos[1] + this.center[1] - 250) / 5);
-      const x = Math.floor((this.startMousePos[0] + this.center[0] - 250) / 5);
+      const y = Math.floor((this.currentMousePos[1]) / 5) + (this.center[1] - 250);
+      const x = Math.floor((this.currentMousePos[0]) / 5) + (this.center[0] - 250);
       const input = {
         color: this.selectColor(store.getState()),
         pos: (y * IMAGE_WIDTH) + x,
       };
       store.dispatch(paintInputMade(input));
+    } else {
+      this.updateCenter(layerX, layerY);
     }
+
     this.startMousePos = [];
     this.currentMousePos = [];
   }
 
   handleClick = (ev) => {
+    this.cursorTO = setTimeout(() => {
+      this.canvas.style.cursor = 'move';
+    }, 100);
     this.canvas.addEventListener('mousemove', this.handleMouseMove);
     this.canvas.addEventListener('mouseup', this.handleMouseUp);
     const { layerX, layerY } = ev;
