@@ -9,13 +9,18 @@ import (
   "strconv"
 )
 
+type RedisData struct {
+  Color int8 `json:"color"`
+  Username string `json:"username"`
+}
+
 type Message struct {
   MessageType string `json:"type"`
   Data json.RawMessage `json:"data"`
 }
 
 type InitialState struct {
-  Board []int8 `json:"grid"`
+  Board []*RedisData `json:"grid"`
 }
 
 type Server struct {
@@ -24,7 +29,7 @@ type Server struct {
   connect chan *Client
   done chan *Client
   broadcast chan *Message
-  board []int8
+  board []*RedisData
 }
 
 func (self *Server) AddClient() chan<- *Client{
@@ -44,7 +49,7 @@ func NewServer(path string) *Server {
   connect := make(chan *Client)
   done := make(chan *Client)
   broadcast := make(chan *Message)
-  board := make([]int8, 0)
+  board := make([]*RedisData, 0)
   return &Server{path, clients, connect, done, broadcast, board}
 }
 
@@ -99,10 +104,11 @@ func (self *Server) Listen() {
 }
 
 func (self *Server) updateBoard(msg *Message) {
+  // should also store username and timestamp
   var data GridData
   err := json.Unmarshal(msg.Data, &data)
   if err != nil {
     log.Println("json unmarshalling error")
   }
-  self.board[data.Pos] = data.Color
+  self.board[data.Pos] = &RedisData{data.Color, data.Username}
 }

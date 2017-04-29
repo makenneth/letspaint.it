@@ -10,38 +10,43 @@ import (
 type GridData struct {
   Pos int `json:"pos"`
   Color int8 `json:"color"`
+  Username string `json:"username"`
 }
 
 type RedisHandler struct {
   client *redis.Client
 }
 
-func (self *RedisHandler) GetBoard() []int8{
-  board := make([]int8, 250000)
+func (self *RedisHandler) GetBoard() []*RedisData {
+  board := make([]*RedisData, 250000)
   done := make(chan bool)
   go func() {
     for i := range board[0:125000] {
+      var posData RedisData
       key := "grid:" + strconv.Itoa(i)
-      val, err := self.client.Get(key).Result()
+      rawJSONString, err := self.client.Get(key).Result()
+      data := []byte(rawJSONString)
       if err != nil {
         log.Println("Get board failed")
         continue
       }
-      color, _ := strconv.Atoi(val)
-      board[i] = int8(color)
+      _ = json.Unmarshal(data, &posData)
+      board[i] = &posData
     }
     done <- true
   }()
   go func() {
     for i := range board[125000:250000] {
-      key := "grid:" + strconv.Itoa(125000 + i)
-      val, err := self.client.Get(key).Result()
+      var posData RedisData
+      key := "grid:" + strconv.Itoa(i + 125000)
+      rawJSONString, err := self.client.Get(key).Result()
+      data := []byte(rawJSONString)
       if err != nil {
         log.Println("Get board failed")
         continue
       }
-      color, _ := strconv.Atoi(val)
-      board[125000 + i] = int8(color)
+      _ = json.Unmarshal(data, &posData)
+      board[i + 125000] = &posData
     }
     done <- true
   }()
@@ -58,8 +63,10 @@ func (self *RedisHandler) Update(msg *Message) {
   if err != nil {
     log.Println("json unmarshalling error")
   }
+
   key := "grid:" + strconv.Itoa(data.Pos)
-  err = self.client.Set(key, data.Color, 0).Err()
+  err = self.client.Set(key, &RedisData{data.Color, data.Username}, 0).Err()
+
   if err != nil {
     log.Println("Redis update failed")
     return
