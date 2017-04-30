@@ -18,6 +18,7 @@ const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
   usernames: new Array(IMAGE_WIDTH * IMAGE_HEIGHT),
   color: 32,
+  center: [50, 50],
 }
 
 const setUsernames = (grid) => {
@@ -93,6 +94,12 @@ export default function Grid(state = initialState, action) {
         ...state,
         data: setGrid(action.grid),
         usernames: setUsernames(action.grid),
+      };
+
+    case ActionTypes.SET_CENTER:
+      return {
+        ...state,
+        center: action.center,
       };
 
     default:

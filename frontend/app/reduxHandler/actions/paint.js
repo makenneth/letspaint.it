@@ -33,3 +33,10 @@ export function pickColor(idx) {
     color: idx,
   };
 }
+
+export function setCenter(center) {
+  return {
+    type: ActionTypes.SET_CENTER,
+    center,
+  };
+}

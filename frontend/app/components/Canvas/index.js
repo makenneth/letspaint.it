@@ -1,5 +1,5 @@
 import store from 'reduxHandler/store';
-import { paintInputMade } from 'actions';
+import { paintInputMade, setCenter } from 'actions';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 export default class Canvas {
@@ -13,7 +13,6 @@ export default class Canvas {
     this.currentCoord = [];
     this.startMousePos = [];
     this.currentMousePos = [];
-    this.center = [250, 250];
     this.changed = true;
     this.imageData = null;
     this.canvas.addEventListener('mousedown', this.handleClick);
@@ -36,6 +35,9 @@ export default class Canvas {
     return state.grid.color;
   }
 
+  selectCenter(state) {
+    return state.grid.center;
+  }
   handleStoreChange = () => {
     const previousValue = this.currentValue;
     this.currentValue = this.select(store.getState());
@@ -50,27 +52,30 @@ export default class Canvas {
     const diffX = Math.ceil((mouseX - prevX) / 2);
     const diffY = Math.ceil((mouseY - prevY) / 2);
     this.changed = true;
-    const centerX = this.center[0] - diffX;
-    const centerY = this.center[1] - diffY;
+    const center = this.selectCenter(store.getState());
+    const centerX = center[0] - diffX;
+    const centerY = center[1] - diffY;
     let posX, posY;
-    if (centerX <= 250) {
-      posX = 250;
-    // why 650?
-    } else if (centerX > 650) {
-      posX = 650;
+    if (centerX < 50) {
+      // this.canvas.style.cursor = 'not-allowed';
+      posX = 50;
+    } else if (centerX > 450) {
+      // this.canvas.style.cursor = 'not-allowed';
+      posX = 450;
     } else {
       posX = centerX;
     }
 
-    if (centerY <= 250) {
-      posY = 250;
-    } else if (centerY > 650) {
-      posY = 650;
+    if (centerY < 50) {
+      // this.canvas.style.cursor = 'not-allowed';
+      posY = 50;
+    } else if (centerY > 450) {
+      // this.canvas.style.cursor = 'not-allowed';
+      posY = 450;
     } else {
       posY = centerY;
     }
-
-    this.center = [posX, posY];
+    store.dispatch(setCenter([posX, posY]));
   }
 
   handleMouseMove = (ev) => {
@@ -87,8 +92,9 @@ export default class Canvas {
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
     this.canvas.removeEventListener('mouseup', this.handleMouseUp);
     if (this.startMousePos === this.currentMousePos) {
-      const y = Math.floor((this.currentMousePos[1]) / 5) + (this.center[1] - 250);
-      const x = Math.floor((this.currentMousePos[0]) / 5) + (this.center[0] - 250);
+      const center = this.selectCenter(store.getState());
+      const y = Math.floor((this.currentMousePos[1]) / 5) + (center[1] - 50);
+      const x = Math.floor((this.currentMousePos[0]) / 5) + (center[0] - 50);
       const input = {
         color: this.selectColor(store.getState()),
         pos: (y * IMAGE_WIDTH) + x,
@@ -96,6 +102,7 @@ export default class Canvas {
       store.dispatch(paintInputMade(input));
     } else {
       this.updateCenter(layerX, layerY);
+      this.canvas.style.cursor = 'default';
     }
 
     this.startMousePos = [];
@@ -120,8 +127,8 @@ export default class Canvas {
     const existed = [];
     const offsets = [0, 4, 8, 12, 16];
 
-    const start = (this.center[1] - 250) * IMAGE_WIDTH * 4 + (this.center[0] - 250) * 4;
-
+    const center = this.selectCenter(store.getState());
+    const start = (center[1] - 50) * IMAGE_WIDTH * 4 + (center[0] - 50) * 4;
     for (let row = 0; row < 100; row++) {
       const rowStartIdx = start + (row * IMAGE_WIDTH * 4);
 

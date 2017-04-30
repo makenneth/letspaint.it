@@ -5,4 +5,5 @@ export default keymirror({
   PAINT_INPUT_RECEIVED: null,
   INITIAL_STATE_UPDATE: null,
   COLOR_PICKED: null,
+  SET_CENTER: null,
 });
