@@ -4,6 +4,36 @@
   height: 5px;
   box-shadow: inset 0px 0px 0px 50px rgba(122,122,122,0.5);
   pointer-events: none;
+  overflow: visible;
+  .tooltip {
+    padding: 5px;
+    border-radius: 3px;
+    background-color: rgba(#e0e0e0, 0.3);
+    position: absolute;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    top: 100%;
+    left: 100%;
+
+    * {
+      font-size: 14px;
+    }
+
+    .coord {
+      display: flex;
+      white-space: nowrap;
+      span {
+        margin-right: 3px;
+        font-weight: 700;
+      }
+    }
+
+    .username {
+      white-space: nowrap;
+      font-weight: 600;
+    }
+  }
 }
 
 .canvas-container {

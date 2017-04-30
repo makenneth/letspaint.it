@@ -5,7 +5,7 @@ import ColorPicker from './ColorPicker';
 
 import './styles.scss';
 
-@connect(({ auth: { username }, grid: { usernames } }) => ({ username, usernames }))
+@connect(({ auth: { username }, grid: { usernames, center } }) => ({ username, usernames, center }))
 export default class Main extends Component {
   static propTypes = {
     username: PropTypes.string,
@@ -36,7 +36,12 @@ export default class Main extends Component {
 
   render() {
     const { top, left, colorPickerOpen } = this.state;
-    const { usernames } = this.props;
+    const { usernames, username, center } = this.props;
+    const posX = (left / 5) + (center[0] - 50);
+    const posY = (top / 5) + (center[1] - 50);
+    const usernameAtPixel = usernames[(posY * 500) + posX];
+    const occupiedBy = (!usernameAtPixel && 'None') || (usernameAtPixel === username && 'You') ||
+      usernameAtPixel;
 
     return (
       <div className="main-container">
@@ -49,15 +54,14 @@ export default class Main extends Component {
           {top !== null && left !== null &&
             <div
               className="hover-effect"
-              style={{ top: `${top}px`, left: `${left}px` }}
+              style={{ top: `${top + 0.5}px`, left: `${left + 0.5}px` }}
             >
               <div className="tooltip">
                 <div className="coord">
-                  <span>X:<span>{left / 5}</span></span>
-                  <span>Y:<span>{top / 5}</span></span>
+                  ({posX + 1}, {posY + 1})
                 </div>
                 <div className="username">
-                  <span>Taken By:<span>{usernames[top * 100 + left / 5]}</span></span>
+                  By: {occupiedBy}
                 </div>
               </div>
             </div>
