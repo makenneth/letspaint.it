@@ -2,9 +2,16 @@ package main
 
 import (
   "strconv"
+  "encoding/json"
   "github.com/go-redis/redis"
   "log"
 )
+
+type dataToStore struct {
+  Color int8 `json:"color"`
+  Username string `json:"username"`
+}
+
 func main() {
   redisCli := redis.NewClient(&redis.Options{
     Addr:     "localhost:6379",
@@ -14,7 +21,9 @@ func main() {
 
   for i := 0; i < 250000; i++ {
     key := "grid:" + strconv.Itoa(i)
-    err := redisCli.Set(key, 32, 0).Err()
+    value := &dataToStore{32, ""}
+    data, _ := json.Marshal(value)
+    err := redisCli.Set(key, data, 0).Err()
     if err != nil {
       log.Fatal("Setting failed")
     }

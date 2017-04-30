@@ -65,10 +65,16 @@ func (self *RedisHandler) Update(msg *Message) {
   }
 
   key := "grid:" + strconv.Itoa(data.Pos)
-  err = self.client.Set(key, &RedisData{data.Color, data.Username}, 0).Err()
+  dataToStore, err := json.Marshal(&RedisData{data.Color, data.Username})
+  if err != nil {
+
+    log.Println("marshalling", err)
+    return
+  }
+  err = self.client.Set(key, dataToStore, 0).Err()
 
   if err != nil {
-    log.Println("Redis update failed")
+    log.Println("Redis update failed", err)
     return
   }
   log.Printf("successfully updated %s", key)
