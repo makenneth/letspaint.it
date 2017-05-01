@@ -1,11 +1,20 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Canvas from 'components/Canvas';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from 'constants';
+import { adjustCanvasScale, pickColor } from 'actions';
 import ColorPicker from './ColorPicker';
-
 import './styles.scss';
 
-@connect(({ auth: { username }, grid: { usernames, center } }) => ({ username, usernames, center }))
+const scales = [1, 2, 5, 10, 20];
+
+@connect(({ auth, grid, canvas }) => ({
+  username: auth.username,
+  usernames: grid.usernames,
+  center: canvas.center,
+  scale: canvas.scale,
+  pickedColor: canvas.color,
+}), { adjustCanvasScale, pickColor })
 export default class Main extends Component {
   static propTypes = {
     username: PropTypes.string,
@@ -15,11 +24,14 @@ export default class Main extends Component {
   state = {
     top: null,
     left: null,
+    showDetail: true,
   }
 
   componentDidMount() {
     this.canvasHandler = new Canvas(this.canvas, 500, 500);
     this.canvas.addEventListener('mousemove', this.handleMouseMove);
+    this.canvas.addEventListener('mouseover', this.handleMouseOver);
+    this.canvas.addEventListener('mouseout', this.handleMouseOut);
   }
 
   componentWillUnmount() {
@@ -27,18 +39,48 @@ export default class Main extends Component {
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
   }
 
+  handleMouseOver = () => {
+    if (!this.state.showDetail) {
+      this.setState({ showDetail: true });
+    }
+  }
+
+  handleMouseOut = () => {
+    if (this.state.showDetail) {
+      this.setState({ showDetail: false });
+    }
+  }
+
   handleMouseMove = (ev) => {
     const { layerX, layerY } = ev;
-    const top = layerY - (layerY % 5);
-    const left = layerX - (layerX % 5);
+    const { scale } = this.props;
+    const top = layerY - (layerY % scale);
+    const left = layerX - (layerX % scale);
     this.setState({ top, left });
   }
 
+  increaseScale = () => {
+    const scaleIndex = scales.findIndex(s => s === this.props.scale);
+    if (scaleIndex < 4) {
+      this.props.adjustCanvasScale(scales[scaleIndex + 1]);
+      this.canvasHandler.forceUpdate();
+    }
+  }
+
+  decreaseScale = () => {
+    const scaleIndex = scales.findIndex(s => s === this.props.scale);
+    if (scaleIndex > 0) {
+      this.props.adjustCanvasScale(scales[scaleIndex - 1]);
+      this.canvasHandler.forceUpdate();
+    }
+  }
+
   render() {
-    const { top, left, colorPickerOpen } = this.state;
-    const { usernames, username, center } = this.props;
-    const posX = (left / 5) + (center[0] - 50);
-    const posY = (top / 5) + (center[1] - 50);
+    const { top, left, showDetail } = this.state;
+    const { usernames, username, center, scale, pickedColor } = this.props;
+    const radius = (CANVAS_WIDTH / scale) / 2;
+    const posX = (left / scale) + (center[0] - radius);
+    const posY = (top / scale) + (center[1] - radius);
     const usernameAtPixel = usernames[(posY * 500) + posX];
     const occupiedBy = (!usernameAtPixel && 'None') || (usernameAtPixel === username && 'You') ||
       usernameAtPixel;
@@ -48,13 +90,18 @@ export default class Main extends Component {
         <div className="canvas-container">
           <canvas
             ref={(node) => { this.canvas = node; }}
-            width={500}
-            height={500}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
           />
-          {top !== null && left !== null &&
+          {top !== null && left !== null && showDetail &&
             <div
               className="hover-effect"
-              style={{ top: `${top + 0.5}px`, left: `${left + 0.5}px` }}
+              style={{
+                top: `${top + 0.5}px`,
+                left: `${left + 0.5}px`,
+                width: `${scale}px`,
+                height: `${scale}px`,
+              }}
             >
               <div className="tooltip">
                 <div className="coord">
@@ -68,10 +115,23 @@ export default class Main extends Component {
           }
         </div>
         <div className="user-controls">
-          <ColorPicker />
+          <ColorPicker
+            pickColor={this.props.pickColor}
+            pickedColor={pickedColor}
+          />
           <div className="zoom-control">
-            <i className="material-icons">zoom_in</i>
-            <i className="material-icons">zoom_out</i>
+            <i
+              className="material-icons"
+              onClick={this.increaseScale}
+            >
+              zoom_in
+            </i>
+            <i
+              className="material-icons"
+              onClick={this.decreaseScale}
+            >
+              zoom_out
+            </i>
           </div>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { pickColor } from 'actions';
 import colors from 'constants/colors';
 
-@connect(({ grid }) => ({ pickedColor: grid.color }), { pickColor })
 export default class ColorPicker extends Component {
+  static propTypes = {
+    pickColor: React.PropTypes.func,
+    pickedColor: React.PropTypes.number,
+  };
+
   state = {
     colorPickerOpen: false,
   };

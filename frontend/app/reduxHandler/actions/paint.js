@@ -40,3 +40,10 @@ export function setCenter(center) {
     center,
   };
 }
+
+export function adjustCanvasScale(scale) {
+  return {
+    type: ActionTypes.ADJUST_CANVAS_SCALE,
+    scale,
+  };
+}

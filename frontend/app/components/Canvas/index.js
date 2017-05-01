@@ -32,14 +32,24 @@ export default class Canvas {
   }
 
   selectColor(state) {
-    return state.grid.color;
+    return state.canvas.color;
   }
 
   selectCenter(state) {
-    return state.grid.center;
+    return state.canvas.center;
   }
+
+  selectScale(state) {
+    return state.canvas.scale;
+  }
+
+  forceUpdate() {
+    this.changed = true;
+  }
+
   handleStoreChange = () => {
     const previousValue = this.currentValue;
+    const scale = this.currentScale;
     this.currentValue = this.select(store.getState());
 
     if (this.currentValue !== previousValue) {
@@ -48,30 +58,35 @@ export default class Canvas {
   }
 
   updateCenter(mouseX, mouseY) {
+    this.changed = true;
     const [prevX, prevY] = this.currentMousePos;
     const diffX = Math.ceil((mouseX - prevX) / 2);
     const diffY = Math.ceil((mouseY - prevY) / 2);
-    this.changed = true;
+
     const center = this.selectCenter(store.getState());
     const centerX = center[0] - diffX;
     const centerY = center[1] - diffY;
+
+    const scale = this.selectScale(store.getState());
+    const radius = (CANVAS_WIDTH / scale) / 2;
+
     let posX, posY;
-    if (centerX < 50) {
+    if (centerX < radius) {
       // this.canvas.style.cursor = 'not-allowed';
-      posX = 50;
-    } else if (centerX > 450) {
+      posX = radius;
+    } else if (centerX > CANVAS_WIDTH - radius) {
       // this.canvas.style.cursor = 'not-allowed';
-      posX = 450;
+      posX = CANVAS_WIDTH - radius;
     } else {
       posX = centerX;
     }
 
-    if (centerY < 50) {
+    if (centerY < radius) {
       // this.canvas.style.cursor = 'not-allowed';
-      posY = 50;
-    } else if (centerY > 450) {
+      posY = radius;
+    } else if (centerY > CANVAS_WIDTH - radius) {
       // this.canvas.style.cursor = 'not-allowed';
-      posY = 450;
+      posY = CANVAS_WIDTH - radius;
     } else {
       posY = centerY;
     }
@@ -93,8 +108,10 @@ export default class Canvas {
     this.canvas.removeEventListener('mouseup', this.handleMouseUp);
     if (this.startMousePos === this.currentMousePos) {
       const center = this.selectCenter(store.getState());
-      const y = Math.floor((this.currentMousePos[1]) / 5) + (center[1] - 50);
-      const x = Math.floor((this.currentMousePos[0]) / 5) + (center[0] - 50);
+      const scale = this.selectScale(store.getState());
+      const radius = (CANVAS_WIDTH / scale) / 2;
+      const y = Math.floor((this.currentMousePos[1]) / scale) + (center[1] - radius);
+      const x = Math.floor((this.currentMousePos[0]) / scale) + (center[0] - radius);
       const input = {
         color: this.selectColor(store.getState()),
         pos: (y * IMAGE_WIDTH) + x,
@@ -124,27 +141,26 @@ export default class Canvas {
     const data = this.currentValue;
     const newImageData = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
     const arr = {};
-    const existed = [];
-    const offsets = [0, 4, 8, 12, 16];
-
+    const scale = this.selectScale(store.getState());
+    const radius = (CANVAS_WIDTH / scale) / 2;
     const center = this.selectCenter(store.getState());
-    const start = (center[1] - 50) * IMAGE_WIDTH * 4 + (center[0] - 50) * 4;
-    for (let row = 0; row < 100; row++) {
+
+    const start = (center[1] - radius) * IMAGE_WIDTH * 4 + (center[0] - radius) * 4;
+
+    for (let row = 0; row < (CANVAS_WIDTH / scale); row++) {
       const rowStartIdx = start + (row * IMAGE_WIDTH * 4);
-
-      for (let col = 0; col < (IMAGE_WIDTH / 5) * 4; col += 4) {
+      for (let col = 0; col < (IMAGE_WIDTH / scale) * 4; col += 4) {
         const current = rowStartIdx + col;
-        const startCanvasIdx = (col * 5) + (row * 4 * 5 * CANVAS_WIDTH);
+        const startCanvasIdx = (col * scale) + (row * 4 * scale * CANVAS_WIDTH);
 
-        for (let j = 0; j < 5; j++) {
+        for (let j = 0; j < scale; j++) {
           const k = startCanvasIdx + (CANVAS_WIDTH * 4 * j);
-
-          offsets.forEach((offset) => {
+          for (let n = 0, offset = 0; n < scale; n++, offset += 4) {
             newImageData[k + offset] = data[current];
             newImageData[k + offset + 1] = data[current + 1];
             newImageData[k + offset + 2] = data[current + 2];
             newImageData[k + offset + 3] = data[current + 3];
-          });
+          }
         }
       }
     }
