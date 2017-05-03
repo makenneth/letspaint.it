@@ -8,13 +8,14 @@ export default class Canvas {
     this.width = width;
     this.height = height;
     this.context = canvas.getContext('2d');
-    this.unsubscribe = store.subscribe(this.handleStoreChange);
-    this.currentValue = this.select(store.getState());
     this.currentCoord = [];
     this.startMousePos = [];
     this.currentMousePos = [];
     this.changed = true;
     this.imageData = null;
+    this.currentValue = this.select(store.getState());
+
+    this.unsubscribe = store.subscribe(this.handleStoreChange);
     this.canvas.addEventListener('mousedown', this.handleClick);
     this.int = setInterval(() => this.draw(), 30);
   }
@@ -45,6 +46,15 @@ export default class Canvas {
 
   forceUpdate() {
     this.changed = true;
+  }
+
+  saveImage() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = IMAGE_WIDTH;
+    tempCanvas.height = IMAGE_HEIGHT;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.putImageData(this.saveImageData(2, 1000, 1000), 0, 0);
+    return tempCanvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
   }
 
   handleStoreChange = () => {
@@ -137,11 +147,11 @@ export default class Canvas {
     this.currentMousePos = this.startMousePos;
   }
 
-  getImageData() {
+  getImageData(definedScale) {
     const data = this.currentValue;
     const newImageData = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
-    const arr = {};
-    const scale = this.selectScale(store.getState());
+
+    const scale = definedScale || this.selectScale(store.getState());
     const radius = (CANVAS_WIDTH / scale) / 2;
     const center = this.selectCenter(store.getState());
 
@@ -155,6 +165,31 @@ export default class Canvas {
 
         for (let j = 0; j < scale; j++) {
           const k = startCanvasIdx + (CANVAS_WIDTH * 4 * j);
+          for (let n = 0, offset = 0; n < scale; n++, offset += 4) {
+            newImageData[k + offset] = data[current];
+            newImageData[k + offset + 1] = data[current + 1];
+            newImageData[k + offset + 2] = data[current + 2];
+            newImageData[k + offset + 3] = data[current + 3];
+          }
+        }
+      }
+    }
+    return new ImageData(newImageData, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
+
+  saveImageData(scale, width, height) {
+    const data = this.currentValue;
+    const newImageData = new Uint8ClampedArray(width * height * 4);
+    const radius = (width / scale) / 2;
+
+    for (let row = 0; row < CANVAS_WIDTH; row++) {
+      const rowStartIdx = row * IMAGE_WIDTH * 4 * scale;
+      for (let col = 0; col < IMAGE_WIDTH * 4; col += 4) {
+        const current = rowStartIdx + col;
+        const startCanvasIdx = (col * scale) + (row * 4 * scale * CANVAS_WIDTH);
+
+        for (let j = 0; j < scale; j++) {
+          const k = startCanvasIdx + (CANVAS_WIDTH * 4 * j * scale);
           for (let n = 0, offset = 0; n < scale; n++, offset += 4) {
             newImageData[k + offset] = data[current];
             newImageData[k + offset + 1] = data[current + 1];

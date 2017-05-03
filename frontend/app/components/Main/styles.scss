@@ -1,3 +1,9 @@
+.main-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .hover-effect {
   position: absolute;
   width: 5px;
@@ -37,14 +43,12 @@
 }
 
 .canvas-container {
+  position: relative;
   box-sizing: content-box;
-  border: 1px solid black;
+  border: 2px solid black;
+  border-radius: 3px;
   width: 500px;
   height: 500px;
-}
-
-.main-container {
-  display: flex;
 }
 
 .color-picker-popover {
@@ -72,6 +76,7 @@
 }
 
 .color-picker {
+  margin-left: 5px;
   cursor: pointer;
 
   .color-input {
@@ -79,6 +84,7 @@
     display: flex;
 
     .picked-color {
+      margin-left: 5px;
       border-radius: 3px;
       border: 3px solid black;
       width: 25px;
@@ -86,10 +92,6 @@
     }
 
     &:hover {
-      i {
-        color: rgba(black, 0.75);
-      }
-
       .picked-color {
         border-color: rgba(black, 0.75);
       }
@@ -101,6 +103,14 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  i {
+    cursor: pointer;
+
+    &:hover {
+      color: rgba(black, 0.75);
+    }
+  }
 }
 
 .zoom-control {
@@ -108,12 +118,7 @@
   flex-direction: column;
 
   i {
-    cursor: pointer;
     font-size: 30px;
-
-    &:hover {
-      color: rgba(black, 0.75);
-    }
   }
 }
 

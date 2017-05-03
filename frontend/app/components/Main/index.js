@@ -6,7 +6,7 @@ import { adjustCanvasScale, pickColor } from 'actions';
 import ColorPicker from './ColorPicker';
 import './styles.scss';
 
-const scales = [1, 2, 5, 10, 20];
+const scales = [1, 2, 5, 10];
 
 @connect(({ auth, grid, canvas }) => ({
   username: auth.username,
@@ -75,6 +75,13 @@ export default class Main extends Component {
     }
   }
 
+  saveImage = () => {
+    const link = document.createElement('a');
+    link.href = this.canvasHandler.saveImage();
+    link.download = 'abc.png';
+    link.click();
+  }
+
   render() {
     const { top, left, showDetail } = this.state;
     const { usernames, username, center, scale, pickedColor } = this.props;
@@ -119,6 +126,7 @@ export default class Main extends Component {
             pickColor={this.props.pickColor}
             pickedColor={pickedColor}
           />
+          <i className="material-icons" onClick={this.saveImage}>save</i>
           <div className="zoom-control">
             <i
               className="material-icons"

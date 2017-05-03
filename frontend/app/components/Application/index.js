@@ -7,6 +7,7 @@ class Application extends React.PureComponent {
   render() {
     return (
       <div className="app-container">
+        <h3>letspaint.it</h3>
         <Main />
       </div>
     );
