@@ -23,7 +23,7 @@ type Config struct {
 }
 
 func getConf() *Config {
-  filename, _ := filepath.Abs("../conf.yaml")
+  filename, _ := filepath.Abs("./conf.yaml")
   yamlFile, err := ioutil.ReadFile(filename)
   log.Println(string(yamlFile[:]))
   checkError(err)
