@@ -11,4 +11,4 @@ server:
       target: "http://127.0.0.1:3000"
 static:
   file_types: "(js|css)"
-  server: "https://s3-us-west-1.amazonaws.com/letsdraw"
+  server: "https://xxxx.com"
