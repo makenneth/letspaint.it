@@ -1,0 +1,14 @@
+server:
+  port: 3005
+  upstreams:
+    - description: "socket server"
+      scheme: "ws://"
+      pattern: "^/ws$"
+      target: "ws://127.0.0.1:4000"
+    - description: "api server"
+      scheme: "http://"
+      pattern: "^/$"
+      target: "http://127.0.0.1:3000"
+static:
+  file_types: "(js|css)"
+  server: "https://s3-us-west-1.amazonaws.com/letsdraw"

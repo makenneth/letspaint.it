@@ -37,7 +37,7 @@ func getHosts(config *Config) []*Host {
       }
       u, _ := url.Parse(upstream.Target)
       var proxy interface{}
-      if upstream.Scheme == "" || upstream.Scheme == "http" {
+      if upstream.Scheme == "" || upstream.Scheme == "http://" || upstream.Scheme == "https://" {
         proxy = httputil.NewSingleHostReverseProxy(u)
       } else {
         proxy = wsutil.NewSingleHostReverseProxy(u)
@@ -91,8 +91,10 @@ func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request
   } else {
     matched := false
     for _, host := range self.hosts {
+      log.Println(host)
       if host.pattern.MatchString(r.URL.Path) {
         matched = true
+        log.Println(host.scheme)
         if host.scheme == "ws://" || host.scheme == "wss://" {
           host.proxy.(*wsutil.ReverseProxy).ServeHTTP(w, r)
         } else {

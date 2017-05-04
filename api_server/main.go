@@ -17,7 +17,7 @@ const html = `
   <!DOCTYPE html>
   <html>
   <head>
-    <title>???</title>
+    <title>letspaint.it</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>

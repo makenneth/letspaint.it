@@ -19,7 +19,6 @@ export const socketMiddleware = (store) => next => action => {
 }
 
 export default function startWebSocket({ getState, dispatch }) {
-  console.log(process.env.WS_URL)
   socket = new WebSocket(process.env.WS_URL);
 
   const messageHandler = (res) => {
