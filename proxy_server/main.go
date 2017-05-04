@@ -12,9 +12,15 @@ type StaticServer struct {
   Server string `yaml:"server"`
 }
 
-type HTTPServer struct {
-  Port string `yaml:"port"`
+type UpstreamServer struct {
   Target string `yaml:"target"`
+  Pattern string `yaml:"pattern"`
+  Description string `yaml:"description"`
+}
+
+type HTTPServer struct {
+  Upstreams []*UpstreamServer `yaml:"upstreams"`
+  Port int `yaml:"port"`
 }
 
 type Config struct {
@@ -31,7 +37,6 @@ func getConf() *Config {
   var config *Config
   err = yaml.Unmarshal(yamlFile, &config)
   checkError(err)
-
   return config
 }
 
