@@ -5,25 +5,11 @@ var autoprefixer = require('autoprefixer');
 module.exports = {
   devtool: 'eval-source-map',
   context: __dirname,
-  entry: [
-    'webpack/hot/dev-server',
-    'webpack-dev-server/client?http://localhost:5000',
-    path.join(__dirname, 'app', 'index.js')
-  ],
+  entry: path.join(__dirname, 'app', 'index.js'),
   output: {
     path: path.join(__dirname, 'public'),
-    publicPath: 'http://localhost:5000/',
+    publicPath: '/public/'
     filename: 'bundle.js'
-  },
-  devServer: {
-    historyApiFallback: true,
-    hot: true,
-    inline: true,
-    progress: true,
-    colors: true,
-    stats: 'errors-only',
-    contentBase: './public',
-    port: 5000
   },
   module: {
     loaders: [
@@ -69,12 +55,14 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify('development'),
+        'NODE_ENV': JSON.stringify('production'),
         'DEVTOOLS': false,
-        'WS_URL': JSON.stringify('ws://localhost:4000/ws')
+        'WS_URL': JSON.stringify('ws://localhost/ws')
       }
     }),
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.AggressiveMergingPlugin()
   ],
   postcss: [ autoprefixer({ browserslist: ['> 5%', 'last 2 versions'] }) ]
 };

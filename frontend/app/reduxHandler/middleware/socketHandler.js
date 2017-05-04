@@ -19,8 +19,8 @@ export const socketMiddleware = (store) => next => action => {
 }
 
 export default function startWebSocket({ getState, dispatch }) {
-  const url = `localhost:4001/ws`;
-  socket = new WebSocket(`ws://${url}`);
+  console.log(process.env.WS_URL)
+  socket = new WebSocket(process.env.WS_URL);
 
   const messageHandler = (res) => {
     const { type, data } = JSON.parse(res.data);
