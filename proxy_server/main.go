@@ -16,6 +16,7 @@ type UpstreamServer struct {
   Target string `yaml:"target"`
   Pattern string `yaml:"pattern"`
   Description string `yaml:"description"`
+  Scheme string `yaml:"scheme"`
 }
 
 type HTTPServer struct {

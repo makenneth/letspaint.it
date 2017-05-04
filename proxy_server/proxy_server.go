@@ -5,13 +5,15 @@ import (
   "net/http"
   "net/url"
   "net/http/httputil"
+  "github.com/yhat/wsutil"
   "regexp"
   "strconv"
 )
 
 type Host struct {
   description string
-  proxy *httputil.ReverseProxy
+  scheme string
+  proxy interface{}
   pattern *regexp.Regexp
 }
 
@@ -29,12 +31,18 @@ func getHosts(config *Config) []*Host {
         log.Fatal("Target is required")
       }
 
-      u, _ := url.Parse(upstream.Target)
       hostReg, err := regexp.Compile(upstream.Pattern)
       if err != nil {
         log.Fatal("Invalid upstream pattern")
       }
-      newHost := &Host{upstream.Description, httputil.NewSingleHostReverseProxy(u), hostReg}
+      u, _ := url.Parse(upstream.Target)
+      var proxy interface{}
+      if upstream.Scheme == "" || upstream.Scheme == "http" {
+        proxy = httputil.NewSingleHostReverseProxy(u)
+      } else {
+        proxy = wsutil.NewSingleHostReverseProxy(u)
+      }
+      newHost := &Host{upstream.Description, upstream.Scheme, proxy, hostReg}
       hosts = append(hosts, newHost)
     }
   }
@@ -83,13 +91,13 @@ func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request
   } else {
     matched := false
     for _, host := range self.hosts {
-      log.Println(r.URL.Path)
-      log.Println(host)
-      log.Println(host.pattern)
-      log.Println(host.pattern.MatchString(r.URL.Path))
       if host.pattern.MatchString(r.URL.Path) {
         matched = true
-        host.proxy.ServeHTTP(w, r)
+        if host.scheme == "ws://" || host.scheme == "wss://" {
+          host.proxy.(*wsutil.ReverseProxy).ServeHTTP(w, r)
+        } else {
+          host.proxy.(*httputil.ReverseProxy).ServeHTTP(w, r)
+        }
       }
     }
     if !matched {
