@@ -8,7 +8,7 @@ module.exports = {
   entry: path.join(__dirname, 'app', 'index.js'),
   output: {
     path: path.join(__dirname, 'public'),
-    publicPath: '/public/'
+    publicPath: '/public/',
     filename: 'bundle.js'
   },
   module: {
@@ -57,7 +57,7 @@ module.exports = {
       'process.env': {
         'NODE_ENV': JSON.stringify('production'),
         'DEVTOOLS': false,
-        'WS_URL': JSON.stringify('ws://localhost/ws')
+        'WS_URL': JSON.stringify('ws://127.0.0.1/ws')
       }
     }),
     new webpack.optimize.DedupePlugin(),

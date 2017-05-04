@@ -2,3 +2,5 @@ node_modules
 public/bundle.js
 npm-debug.log
 dump.rdb
+config.yaml
+frontend/public/index.html

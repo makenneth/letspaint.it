@@ -71,7 +71,7 @@ module.exports = {
       'process.env': {
         'NODE_ENV': JSON.stringify('development'),
         'DEVTOOLS': false,
-        'WS_URL': JSON.stringify('ws://localhost:4000/ws')
+        'WS_URL': JSON.stringify('ws://localhost:3005/ws')
       }
     }),
     new webpack.HotModuleReplacementPlugin()
