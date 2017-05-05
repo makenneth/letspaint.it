@@ -1,5 +1,5 @@
 import store from 'reduxHandler/store';
-import { paintInputMade, setCenter } from 'actions';
+import { paintInputMade, setCenter, startCanvasLoading } from 'actions';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 export default class Canvas {
@@ -42,6 +42,10 @@ export default class Canvas {
 
   selectScale(state) {
     return state.canvas.scale;
+  }
+
+  selectIsFullStateFetched(state) {
+    return state.grid.isFetched;
   }
 
   forceUpdate() {
@@ -105,6 +109,12 @@ export default class Canvas {
 
   handleMouseMove = (ev) => {
     const { layerX, layerY } = ev;
+    if (!this.selectIsFullStateFetched(store.getState())) {
+      store.dispatch(startCanvasLoading());
+      this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+      this.canvas.removeEventListener('mouseup', this.handleMouseUp);
+      return;
+    }
     this.updateCenter(layerX, layerY);
     this.currentMousePos = [layerX, layerY];
   }

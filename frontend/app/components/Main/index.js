@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Canvas from 'components/Canvas';
+import { Loader } from '_common';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from 'constants';
 import { adjustCanvasScale, pickColor } from 'actions';
 import ColorPicker from './ColorPicker';
@@ -14,6 +15,7 @@ const scales = [1, 2, 5, 10];
   center: canvas.center,
   scale: canvas.scale,
   pickedColor: canvas.color,
+  isLoading: grid.isLoading,
 }), { adjustCanvasScale, pickColor })
 export default class Main extends Component {
   static propTypes = {
@@ -61,7 +63,7 @@ export default class Main extends Component {
 
   increaseScale = () => {
     const scaleIndex = scales.findIndex(s => s === this.props.scale);
-    if (scaleIndex < 4) {
+    if (scaleIndex < 3) {
       this.props.adjustCanvasScale(scales[scaleIndex + 1]);
       this.canvasHandler.forceUpdate();
     }
@@ -84,7 +86,7 @@ export default class Main extends Component {
 
   render() {
     const { top, left, showDetail } = this.state;
-    const { usernames, username, center, scale, pickedColor } = this.props;
+    const { usernames, username, center, scale, pickedColor, isLoading } = this.props;
     const radius = (CANVAS_WIDTH / scale) / 2;
     const posX = (left / scale) + (center[0] - radius);
     const posY = (top / scale) + (center[1] - radius);
@@ -120,13 +122,13 @@ export default class Main extends Component {
               </div>
             </div>
           }
+          <Loader isLoading={isLoading} />
         </div>
         <div className="user-controls">
           <ColorPicker
             pickColor={this.props.pickColor}
             pickedColor={pickedColor}
           />
-          <i className="material-icons" onClick={this.saveImage}>save</i>
           <div className="zoom-control">
             <i
               className="material-icons"
@@ -146,3 +148,4 @@ export default class Main extends Component {
     );
   }
 }
+// <i className="material-icons" onClick={this.saveImage}>save</i>

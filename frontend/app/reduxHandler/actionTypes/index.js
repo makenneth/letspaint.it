@@ -8,4 +8,5 @@ export default keymirror({
   SET_CENTER: null,
   ADJUST_CANVAS_SCALE: null,
   PARTIAL_INITIAL_STATE_UPDATE: null,
+  START_CANVAS_LOADING: null,
 });

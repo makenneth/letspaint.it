@@ -44,6 +44,7 @@ module.exports = {
     alias: {
       components: path.resolve(__dirname, 'app/components/'),
       assets: path.resolve(__dirname, 'app/assets/'),
+      _common: path.resolve(__dirname, 'app/components/_common'),
       actions: path.resolve(__dirname, 'app/reduxHandler/actions'),
       actionTypes: path.resolve(__dirname, 'app/reduxHandler/actionTypes'),
       constants: path.resolve(__dirname, 'app/constants'),

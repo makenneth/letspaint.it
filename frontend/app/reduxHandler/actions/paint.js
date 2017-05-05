@@ -54,3 +54,9 @@ export function adjustCanvasScale(scale) {
     scale,
   };
 }
+
+export function startCanvasLoading() {
+  return {
+    type: ActionTypes.START_CANVAS_LOADING,
+  };
+}
