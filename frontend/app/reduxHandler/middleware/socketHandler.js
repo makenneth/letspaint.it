@@ -1,5 +1,5 @@
 import ActionTypes from 'actionTypes';
-import { paintInputReceived, initialStateUpdate } from 'actions';
+import { paintInputReceived, initialStateUpdate, partialInitialStateUpdate } from 'actions';
 let socket;
 
 export const socketMiddleware = (store) => next => action => {
@@ -28,6 +28,9 @@ export default function startWebSocket({ getState, dispatch }) {
         dispatch(paintInputReceived(data));
         break;
       case 'INITIAL_STATE':
+        dispatch(partialInitialStateUpdate(data));
+        break;
+      case 'FULL_INITIAL_STATE':
         dispatch(initialStateUpdate(data));
         break;
       default:

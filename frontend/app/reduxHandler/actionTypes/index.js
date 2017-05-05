@@ -7,4 +7,5 @@ export default keymirror({
   COLOR_PICKED: null,
   SET_CENTER: null,
   ADJUST_CANVAS_SCALE: null,
+  PARTIAL_INITIAL_STATE_UPDATE: null,
 });

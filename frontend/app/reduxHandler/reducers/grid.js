@@ -6,12 +6,13 @@ import {
   updatePixel,
   updateUsernames,
   setGrid,
-  setUsernames,
+  setPartialUsernames,
+  setPartialGrid,
 } from 'reduxHandler/helpers/grid';
 
 const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
-  usernames: new Array(IMAGE_WIDTH * IMAGE_HEIGHT),
+  usernames: [],
 }
 
 export default function Grid(state = initialState, action) {
@@ -28,8 +29,15 @@ export default function Grid(state = initialState, action) {
     case ActionTypes.INITIAL_STATE_UPDATE:
       return {
         ...state,
-        data: setGrid(action.grid),
-        usernames: setUsernames(action.grid),
+        data: setGrid(action.grid.colors),
+        usernames: action.grid.usernames,
+      };
+
+    case ActionTypes.PARTIAL_INITIAL_STATE_UPDATE:
+      return {
+        ...state,
+        data: setPartialGrid(action.grid.colors),
+        usernames: setPartialUsernames(action.grid.usernames),
       };
 
     default:

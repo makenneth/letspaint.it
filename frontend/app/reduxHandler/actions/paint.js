@@ -27,6 +27,13 @@ export function initialStateUpdate(data) {
   };
 }
 
+export function partialInitialStateUpdate(data) {
+  return {
+    type: ActionTypes.PARTIAL_INITIAL_STATE_UPDATE,
+    grid: data.grid,
+  };
+}
+
 export function pickColor(idx) {
   return {
     type: ActionTypes.COLOR_PICKED,
