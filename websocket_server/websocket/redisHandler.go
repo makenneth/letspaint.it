@@ -17,44 +17,26 @@ type RedisHandler struct {
   client *redis.Client
 }
 
-func (self *RedisHandler) GetBoard() []*RedisData {
-  board := make([]*RedisData, 250000)
-  done := make(chan bool)
-  go func() {
-    for i := range board[0:125000] {
-      var posData RedisData
-      key := "grid:" + strconv.Itoa(i)
-      rawJSONString, err := self.client.Get(key).Result()
-      data := []byte(rawJSONString)
-      if err != nil {
-        log.Println("Get board failed")
-        continue
-      }
-      _ = json.Unmarshal(data, &posData)
-      board[i] = &posData
-    }
-    done <- true
-  }()
-  go func() {
-    for i := range board[125000:250000] {
-      var posData RedisData
-      key := "grid:" + strconv.Itoa(i + 125000)
-      rawJSONString, err := self.client.Get(key).Result()
-      data := []byte(rawJSONString)
-      if err != nil {
-        log.Println("Get board failed")
-        continue
-      }
-      _ = json.Unmarshal(data, &posData)
-      board[i + 125000] = &posData
-    }
-    done <- true
-  }()
+func (self *RedisHandler) GetBoard() ([]int8, []string) {
+  usernames := make([]string, 250000)
+  colors := make([]int8, 250000)
 
-  for i := 0; i < 2; i++ {
-    <-done
+  for i := 0; i < 250000; i++ {
+    var posData RedisData
+    key := "grid:" + strconv.Itoa(i)
+    rawJSONString, err := self.client.Get(key).Result()
+    data := []byte(rawJSONString)
+    if err != nil {
+      log.Fatal("Get board failed")
+      continue
+    }
+    _ = json.Unmarshal(data, &posData)
+
+    usernames[i] = posData.Username
+    colors[i] = posData.Color
   }
-  return board
+
+  return colors, usernames
 }
 
 func (self *RedisHandler) Update(msg *Message) {
@@ -65,13 +47,13 @@ func (self *RedisHandler) Update(msg *Message) {
   }
 
   key := "grid:" + strconv.Itoa(data.Pos)
-  dataToStore, err := json.Marshal(&RedisData{data.Color, data.Username})
+  pointJson, err := json.Marshal(&RedisData{data.Color, data.Username})
   if err != nil {
 
     log.Println("marshalling", err)
     return
   }
-  err = self.client.Set(key, dataToStore, 0).Err()
+  err = self.client.Set(key, pointJson, 0).Err()
 
   if err != nil {
     log.Println("Redis update failed", err)

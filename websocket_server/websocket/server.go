@@ -19,8 +19,13 @@ type Message struct {
   Data json.RawMessage `json:"data"`
 }
 
+type BoardData struct {
+  Colors []int8 `json:"colors"`
+  Usernames []string `json:"usernames"`
+}
+
 type InitialState struct {
-  Board []*RedisData `json:"grid"`
+  Board *BoardData `json:"grid"`
 }
 
 type Server struct {
@@ -29,7 +34,8 @@ type Server struct {
   connect chan *Client
   done chan *Client
   broadcast chan *Message
-  board []*RedisData
+  usernames []string
+  colors []int8
 }
 
 func (self *Server) AddClient() chan<- *Client{
@@ -49,8 +55,9 @@ func NewServer(path string) *Server {
   connect := make(chan *Client)
   done := make(chan *Client)
   broadcast := make(chan *Message)
-  board := make([]*RedisData, 0)
-  return &Server{path, clients, connect, done, broadcast, board}
+  usernames := make([]string, 0)
+  colors := make([]int8, 0)
+  return &Server{path, clients, connect, done, broadcast, usernames, colors}
 }
 
 func (self *Server) Listen() {
@@ -75,7 +82,7 @@ func (self *Server) Listen() {
   defer redisCli.Close()
 
   http.Handle(self.path, websocket.Handler(onConnected))
-  self.board = handler.GetBoard()
+  self.colors, self.usernames = handler.GetBoard()
   log.Println("get board done")
   for {
     select {
@@ -83,8 +90,7 @@ func (self *Server) Listen() {
         c.Username += strconv.Itoa(len(self.clients) + 1)
         log.Printf("client %s connected", c.Username)
         self.clients = append(self.clients, c)
-        data, _ := json.Marshal(&InitialState{self.board})
-        c.Write() <- &Message{"INITIAL_STATE", data}
+        go self.sendInitialState(c)
       case c := <-self.done:
         log.Printf("client %s disconnected", c.Username)
         for i := range self.clients {
@@ -103,12 +109,30 @@ func (self *Server) Listen() {
   }
 }
 
+func (self *Server) sendInitialState(c *Client) {
+  usernames := make([]string, 10000)
+  colors := make([]int8, 10000)
+  for i := 0; i < 100; i++ {
+    for j := 0; j < 100; j++ {
+      usernames[i * 100 + j] = self.usernames[i * 500 + j]
+      colors[i * 100 + j] = self.colors[i * 500 + j]
+    }
+  }
+  state := &InitialState{&BoardData{colors, usernames}}
+  data, _ := json.Marshal(state)
+  c.Write() <- &Message{"INITIAL_STATE", data}
+  state = &InitialState{&BoardData{self.colors, self.usernames}}
+  data, _ = json.Marshal(state)
+  c.Write() <- &Message{"FULL_INITIAL_STATE", data}
+}
+
 func (self *Server) updateBoard(msg *Message) {
-  // should also store username and timestamp
+  // should also store timestamp
   var data GridData
   err := json.Unmarshal(msg.Data, &data)
   if err != nil {
     log.Println("json unmarshalling error")
   }
-  self.board[data.Pos] = &RedisData{data.Color, data.Username}
+  self.usernames[data.Pos] = data.Username
+  self.colors[data.Pos] = data.Color
 }
