@@ -16,8 +16,12 @@ class Auth extends Component {
     const title = page === 'signup' ? 'Sign Up' : 'Log In';
 
     return (<div className="auth-buttons">
-      <button onClick={this.openSignUp}>Sign Up</button>
-      <button onClick={this.openLogIn}>Log In</button>
+      <button className="sign-up" onClick={this.openSignUp}>
+        Sign Up
+      </button>
+      <button className="log-in" onClick={this.openLogIn}>
+        Log In
+      </button>
       <div className={`overlay${page !== null ? ' opened': ''}`}>
         <div className="form">
           <i className="material-icons" onClick={this.handleClose}>close</i>

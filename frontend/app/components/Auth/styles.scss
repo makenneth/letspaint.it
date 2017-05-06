@@ -6,6 +6,18 @@
   right: 20px;
   top: 20px;
 
+  .log-in {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    @include button-background(rgb(40, 127, 70), false);
+  }
+
+  .sign-up {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    @include button-background(rgb(217, 133, 63), false);
+  }
+
   .overlay {
     visibility: hidden;
     position: fixed;
@@ -29,6 +41,7 @@
   height: 45px;
   width: 240px;
   font-size: 14px;
+  border-radius: 3px;
   color: white;
   cursor: pointer;
 
