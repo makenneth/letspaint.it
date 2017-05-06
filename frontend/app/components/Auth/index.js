@@ -18,8 +18,9 @@ class Auth extends Component {
     return (<div className="auth-buttons">
       <button onClick={this.openSignUp}>Sign Up</button>
       <button onClick={this.openLogIn}>Log In</button>
-      {
-        page !== null && <div className="form">
+      <div className={`overlay${page !== null ? ' opened': ''}`}>
+        <div className="form">
+          <i className="material-icons" onClick={this.handleClose}>close</i>
           <h4>{title}</h4>
           <div className="social-media-button facebook">
             <span>
@@ -34,7 +35,7 @@ class Auth extends Component {
             {title} with Google
           </div>
         </div>
-      }
+      </div>
     </div>);
   }
 }

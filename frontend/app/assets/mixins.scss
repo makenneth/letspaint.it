@@ -1,0 +1,17 @@
+@mixin button-background($color, $translate: true) {
+  background-color: $color;
+  @if $translate {
+    transform: translateY(0);
+  }
+
+  &:hover {
+    background-color: lighten($color, 5%);
+  }
+
+  &:active {
+    @if $translate {
+      transform: translateY(1px);
+    }
+    background-color: darken($color, 5%);
+  }
+}
