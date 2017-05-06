@@ -1,0 +1,66 @@
+@import '~assets/mixins';
+
+.auth-buttons {
+  position: relative;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+
+.social-media-button {
+  display: flex;
+  align-items: center;
+  height: 45px;
+  width: 220px;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+
+  span {
+    display: flex;
+    align-items: center;
+    height: 45px;
+    width: 50px;
+    color: white;
+    fill: white;
+    padding-right: 5px;
+  }
+
+  svg {
+    width: 100%;
+    height: 80%;
+    color: white;
+  }
+
+  &.facebook {
+    @include button-background(#3b5998);
+    margin-bottom: 10px;
+  }
+
+  &.google {
+    @include button-background(#d34836);
+  }
+}
+
+.form {
+  background-color: white;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  right: calc(100% - 75px);
+  padding: 20px;
+  box-shadow: 0px 1px 5px #e0e0e0;
+
+  h4 {
+    font-weight: 300;
+    color: #888888;
+    margin: 0;
+    margin-bottom: 15px;
+  }
+}
+
