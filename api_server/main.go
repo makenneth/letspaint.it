@@ -3,15 +3,33 @@ package main
 import (
   "fmt"
   "log"
+  "time"
   "net/http"
   "encoding/json"
+  "path/filepath"
+  "gopkg.in/yaml.v2"
+  "golang.org/x/oauth2"
+  "golang.org/x/oauth2/google"
+  "io/ioutil"
+  "./token"
 )
+
+type Config struct {
+  OAuth map[string]*OAuthCredential `yaml:"oauth"`
+}
+
+type OAuthCredential struct {
+  ClientId string `yaml:"client_id"`
+  ClientSecret string `yaml:"client_secret"`
+}
 
 type ErrorMessage struct {
   Error struct {
     Message string `json:"message"`
   } `json:"error"`
 }
+
+var oauthCredentials = make(map[string]*oauth2.Config)
 
 const html = `
   <!DOCTYPE html>
@@ -77,9 +95,11 @@ const html = `
   </html>
 `;
 
-func templateHandler(w http.ResponseWriter, r *http.Request) {
+func templateHandler(w http.ResponseWriter, r *http.Request) (int, string) {
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   fmt.Fprint(w, html)
+
+  return 0, ""
 }
 
 func errorResponse(w http.ResponseWriter, code int, message string) {
@@ -92,15 +112,106 @@ func errorResponse(w http.ResponseWriter, code int, message string) {
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-  log.Println("/")
-  if r.URL.Path == "/" {
-    templateHandler(w, r)
-  } else {
-    log.Println("not found")
-    errorResponse(w, 404, "Not Found")
+  var code int
+  var msg string
+  switch r.URL.Path {
+  case "/":
+    code, msg = templateHandler(w, r)
+  case "/oauth/google":
+    code, msg = googleOAuthHandler(w, r)
+  case "/oauth/login":
+    code, msg = loginHandler(w, r)
+  default:
+    code = 404
+    msg = "Not Found"
+  }
+  if code != 0 {
+    log.Println(msg)
+    errorResponse(w, code, msg)
   }
 }
+
+func loginHandler(w http.ResponseWriter, r *http.Request) (int, string) {
+  oauthType := r.URL.Query().Get("type")
+
+  if _, ok := oauthCredentials[oauthType]; !ok {
+    return 404, "Type not supported"
+  }
+
+  tok, _ := token.GenerateRandomToken(32)
+  cookie := &http.Cookie{
+    Name: "state",
+    Value: tok,
+    Expires: time.Now().Add(15 * time.Minute),
+    Secure: true,
+    HttpOnly: true,
+  }
+
+  http.SetCookie(w, cookie)
+  url := map[string]string{"url": getLoginURL(oauthType, tok)}
+  data, _ := json.Marshal(url)
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(data)
+  return 0, ""
+}
+
+func getLoginURL(authType, state string) string {
+  return oauthCredentials[authType].AuthCodeURL(state)
+}
+
+func googleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
+  cookie, err := r.Cookie("state")
+  if _, ok := oauthCredentials["google"]; !ok {
+    return 404, "OAuth Type not supported"
+  }
+  if err == nil && cookie.String() != "" {
+    if r.URL.Query().Get("state") == cookie.Value {
+      tok, err := oauthCredentials["google"].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
+      if err == nil {
+        client := oauthCredentials["google"].Client(oauth2.NoContext, tok)
+        resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+        if err == nil {
+          defer resp.Body.Close()
+          data, _ := ioutil.ReadAll(resp.Body)
+          log.Println("Resp body: ", string(data))
+          return 0, ""
+        }
+      }
+    }
+  }
+
+  return 403, "Invalid token"
+}
+
+func googleConfig(cred *OAuthCredential) *oauth2.Config {
+  return &oauth2.Config{
+    ClientID: cred.ClientId,
+    ClientSecret: cred.ClientSecret,
+    RedirectURL: "http://localhost:3000/oauth.google",
+    Scopes: []string{
+      "https://www.googleapis.com/auth/userinfo.email",
+    },
+    Endpoint: google.Endpoint,
+  }
+}
+
 func main() {
+  filename, _ := filepath.Abs("./config.yaml")
+  yamlFile, err := ioutil.ReadFile(filename)
+  checkError(err)
+  log.Println(string(yamlFile[:]))
+  var config Config
+  err = yaml.Unmarshal(yamlFile, &config)
+  checkError(err)
+
+  oauthCredentials["google"] = googleConfig(config.OAuth["google"])
+  log.Println(oauthCredentials)
   http.HandleFunc("/", httpHandler)
   log.Fatal(http.ListenAndServe(":3000", nil))
+}
+
+func checkError(err error) {
+  if err != nil {
+    log.Fatal(err)
+  }
 }
