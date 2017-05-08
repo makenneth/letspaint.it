@@ -83,7 +83,7 @@ const html = `
         top: 0;
       }
     </style>
-    <script src="/bundle.js"></script>
+    <script src="http://localhost:5000/bundle.js"></script>
   </head>
   <body>
     <div id="root">
@@ -104,7 +104,6 @@ func templateHandler(w http.ResponseWriter, r *http.Request) (int, string) {
 
 func errorResponse(w http.ResponseWriter, code int, message string) {
   w.WriteHeader(code)
-  w.Header().Set("Content-Type", "application/json")
   err := &ErrorMessage{}
   err.Error.Message = message
   res, _ := json.Marshal(err)
@@ -112,18 +111,16 @@ func errorResponse(w http.ResponseWriter, code int, message string) {
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
+  // w.Header().Set("Content-Type", "application/json")
   var code int
   var msg string
   switch r.URL.Path {
-  case "/":
-    code, msg = templateHandler(w, r)
   case "/oauth/google":
     code, msg = googleOAuthHandler(w, r)
   case "/oauth/login":
     code, msg = loginHandler(w, r)
   default:
-    code = 404
-    msg = "Not Found"
+    code, msg = templateHandler(w, r)
   }
   if code != 0 {
     log.Println(msg)
@@ -133,24 +130,25 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginHandler(w http.ResponseWriter, r *http.Request) (int, string) {
   oauthType := r.URL.Query().Get("type")
-
+  log.Println(r.Cookies())
+  log.Println(len(r.Cookies()))
   if _, ok := oauthCredentials[oauthType]; !ok {
     return 404, "Type not supported"
   }
 
   tok, _ := token.GenerateRandomToken(32)
-  cookie := &http.Cookie{
-    Name: "state",
+  cookie := http.Cookie{
+    Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
-    Secure: true,
+    // Secure: true,
     HttpOnly: true,
   }
-
-  http.SetCookie(w, cookie)
+  log.Println(tok)
+  http.SetCookie(w, &cookie)
+  // http.Redirect(w, r, getLoginURL(oauthType, tok), 302)
   url := map[string]string{"url": getLoginURL(oauthType, tok)}
   data, _ := json.Marshal(url)
-  w.Header().Set("Content-Type", "application/json")
   w.Write(data)
   return 0, ""
 }
@@ -160,7 +158,7 @@ func getLoginURL(authType, state string) string {
 }
 
 func googleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
-  cookie, err := r.Cookie("state")
+  cookie, err := r.Cookie("oauth-tok")
   if _, ok := oauthCredentials["google"]; !ok {
     return 404, "OAuth Type not supported"
   }
@@ -187,7 +185,7 @@ func googleConfig(cred *OAuthCredential) *oauth2.Config {
   return &oauth2.Config{
     ClientID: cred.ClientId,
     ClientSecret: cred.ClientSecret,
-    RedirectURL: "http://localhost:3000/oauth.google",
+    RedirectURL: "http://127.0.0.1:3000/oauth/google",
     Scopes: []string{
       "https://www.googleapis.com/auth/userinfo.email",
     },
