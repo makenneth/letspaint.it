@@ -3,24 +3,16 @@ package main
 import (
   "fmt"
   "log"
-  "time"
   "net/http"
   "encoding/json"
-  "path/filepath"
   "gopkg.in/yaml.v2"
-  "golang.org/x/oauth2"
-  "golang.org/x/oauth2/google"
   "io/ioutil"
-  "./token"
+  "path/filepath"
+  "./oauth"
 )
 
 type Config struct {
-  OAuth map[string]*OAuthCredential `yaml:"oauth"`
-}
-
-type OAuthCredential struct {
-  ClientId string `yaml:"client_id"`
-  ClientSecret string `yaml:"client_secret"`
+  OAuth map[string]*oauth.OAuthCredential `yaml:"oauth"`
 }
 
 type ErrorMessage struct {
@@ -28,8 +20,6 @@ type ErrorMessage struct {
     Message string `json:"message"`
   } `json:"error"`
 }
-
-var oauthCredentials = make(map[string]*oauth2.Config)
 
 const html = `
   <!DOCTYPE html>
@@ -116,80 +106,16 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
   var msg string
   switch r.URL.Path {
   case "/oauth/google":
-    code, msg = googleOAuthHandler(w, r)
+    code, msg = oauth.GoogleOAuthHandler(w, r)
   case "/oauth/login":
-    code, msg = loginHandler(w, r)
+    code, msg = oauth.LoginHandler(w, r)
   default:
     code, msg = templateHandler(w, r)
   }
+
   if code != 0 {
     log.Println(msg)
     errorResponse(w, code, msg)
-  }
-}
-
-func loginHandler(w http.ResponseWriter, r *http.Request) (int, string) {
-  oauthType := r.URL.Query().Get("type")
-  log.Println(r.Cookies())
-  log.Println(len(r.Cookies()))
-  if _, ok := oauthCredentials[oauthType]; !ok {
-    return 404, "Type not supported"
-  }
-
-  tok, _ := token.GenerateRandomToken(32)
-  cookie := http.Cookie{
-    Name: "oauth-tok",
-    Value: tok,
-    Expires: time.Now().Add(15 * time.Minute),
-    // Secure: true,
-    HttpOnly: true,
-  }
-  log.Println(tok)
-  http.SetCookie(w, &cookie)
-  // http.Redirect(w, r, getLoginURL(oauthType, tok), 302)
-  url := map[string]string{"url": getLoginURL(oauthType, tok)}
-  data, _ := json.Marshal(url)
-  w.Write(data)
-  return 0, ""
-}
-
-func getLoginURL(authType, state string) string {
-  return oauthCredentials[authType].AuthCodeURL(state)
-}
-
-func googleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
-  cookie, err := r.Cookie("oauth-tok")
-  if _, ok := oauthCredentials["google"]; !ok {
-    return 404, "OAuth Type not supported"
-  }
-  if err == nil && cookie.String() != "" {
-    if r.URL.Query().Get("state") == cookie.Value {
-      tok, err := oauthCredentials["google"].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
-      if err == nil {
-        client := oauthCredentials["google"].Client(oauth2.NoContext, tok)
-        resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
-        if err == nil {
-          defer resp.Body.Close()
-          data, _ := ioutil.ReadAll(resp.Body)
-          log.Println("Resp body: ", string(data))
-          return 0, ""
-        }
-      }
-    }
-  }
-
-  return 403, "Invalid token"
-}
-
-func googleConfig(cred *OAuthCredential) *oauth2.Config {
-  return &oauth2.Config{
-    ClientID: cred.ClientId,
-    ClientSecret: cred.ClientSecret,
-    RedirectURL: "http://127.0.0.1:3000/oauth/google",
-    Scopes: []string{
-      "https://www.googleapis.com/auth/userinfo.email",
-    },
-    Endpoint: google.Endpoint,
   }
 }
 
@@ -197,13 +123,12 @@ func main() {
   filename, _ := filepath.Abs("./config.yaml")
   yamlFile, err := ioutil.ReadFile(filename)
   checkError(err)
-  log.Println(string(yamlFile[:]))
+
   var config Config
   err = yaml.Unmarshal(yamlFile, &config)
   checkError(err)
+  oauth.Initialize(config.OAuth)
 
-  oauthCredentials["google"] = googleConfig(config.OAuth["google"])
-  log.Println(oauthCredentials)
   http.HandleFunc("/", httpHandler)
   log.Fatal(http.ListenAndServe(":3000", nil))
 }
