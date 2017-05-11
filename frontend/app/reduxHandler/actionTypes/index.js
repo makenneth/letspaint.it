@@ -12,4 +12,8 @@ export default keymirror({
   INITIAL_STATE_UPDATE: null,
   USER_COUNT_UPDATE: null,
   RANKING_UPDATE: null,
+
+  GET_USER_INFO_REQUEST: null,
+  GET_USER_INFO_SUCCESS: null,
+  GET_USER_INFO_FAILURE: null,
 });
