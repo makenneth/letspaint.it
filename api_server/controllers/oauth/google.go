@@ -6,10 +6,12 @@ import (
   "net/http"
   "encoding/json"
   "golang.org/x/oauth2"
+  "github.com/makenneth/letspaint/api_server/utils/token"
+  "github.com/makenneth/letspaint/api_server/models"
 )
 
 type GoogleOAuthData struct {
-  Service_Id int `json:"sub"`
+  ServiceId string `json:"sub"`
   Verified  bool `json:"email_verified"`
   Name string `json:"name"`
 }
@@ -31,21 +33,16 @@ func GoogleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
         resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
         if err == nil {
           defer resp.Body.Close()
-          data, _ := ioutil.ReadAll(resp.Body)
-          log.Println(string(data[:]))
-          var googleData map[string]string
+          responseData, _ := ioutil.ReadAll(resp.Body)
+          log.Println(string(responseData[:]))
 
-          err = json.Unmarshal(data, &googleData)
+          var data *GoogleOAuthData
+          err = json.Unmarshal(responseData, &data)
           log.Println(err)
-          log.Println("data", googleData)
-          // log.Println("Name", data["name"])
-          // provider_type = "google"
-          // client_id = data["sub"]
-
-          // id
-          // email
-          //
-          // token
+          log.Println("data", data)
+          if !data.Verified {
+            // set error in cookie
+          }
           // cookie := http.Cookie{
           //   Name: "oauth-tok",
           //   Value: "",
@@ -53,14 +50,18 @@ func GoogleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
           // }
           // http.SetCookie(w, &cookie)
 
-          // user, _ := json.Marshal(&User{Username: data["name"], Id: data["id"]})
-          // cookie = http.Cookie{
-          //   Name: "user_info",
-          //   Value: user,
-          //   MaxAge: 30,
-          //   HttpOnly: false,
-          // }
-          // http.SetCookie(w, &cookie)
+          user, err := json.Marshal(&models.User{Username: data.Name, Id: data.ServiceId})
+          log.Println(string(user[:]))
+          log.Println(err)
+          pid, _ := token.GenerateRandomToken(32)
+          cookie := http.Cookie{
+            Name: "pid",
+            Value: pid,
+            Path: "/",
+            HttpOnly: false,
+          }
+          http.SetCookie(w, &cookie)
+          http.Redirect(w, r, "/login/success", 302)
           return 0, ""
         }
       }

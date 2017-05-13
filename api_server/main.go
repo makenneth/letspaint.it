@@ -8,7 +8,7 @@ import (
   "gopkg.in/yaml.v2"
   "io/ioutil"
   "path/filepath"
-  "./oauth"
+  "github.com/makenneth/letspaint/api_server/controllers/oauth"
 )
 
 type Config struct {
@@ -120,7 +120,7 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-  filename, _ := filepath.Abs("./config.yaml")
+  filename, _ := filepath.Abs("./api_server/config.yaml")
   yamlFile, err := ioutil.ReadFile(filename)
   checkError(err)
 

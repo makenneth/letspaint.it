@@ -7,7 +7,7 @@ import (
   "encoding/json"
   "golang.org/x/oauth2"
   "golang.org/x/oauth2/google"
-  "../token"
+  "github.com/makenneth/letspaint/api_server/utils/token"
 )
 
 type OAuthCredential struct {
@@ -15,10 +15,6 @@ type OAuthCredential struct {
   ClientSecret string `yaml:"client_secret"`
 }
 
-type User struct {
-  Id int `json:"id"`
-  Username string  `json:"username"`
-}
 
 var oauthCredentials = make(map[string]*oauth2.Config)
 
@@ -39,6 +35,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) (int, string) {
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
     HttpOnly: true,
+    Domain: "127.0.0.1",
+    // Secure: true,
   }
   log.Println(tok)
   http.SetCookie(w, &cookie)
