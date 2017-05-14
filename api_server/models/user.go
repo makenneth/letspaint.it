@@ -12,6 +12,7 @@ import (
 var mutex sync.Mutex
 type User struct {
   Id string `json:"id"`
+  UserId int `json:"user_id"`
   Name string  `json:"name"`
 }
 
