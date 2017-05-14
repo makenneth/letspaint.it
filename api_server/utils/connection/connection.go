@@ -7,7 +7,7 @@ import (
   _ "github.com/lib/pq"
 )
 
-var postgres *sql.DB
+var DB *sql.DB
 var acceptedFields = [...]string{
   "dbname",
   "user",
@@ -46,5 +46,5 @@ func Connect(config *map[string]string) {
     log.Fatal("Fail to connect to postgres ---\n", err)
   }
   log.Println("Connection to postgres --- Success")
-  postgres = db
+  DB = db
 }

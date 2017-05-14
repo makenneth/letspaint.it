@@ -15,7 +15,7 @@ type OAuthCredential struct {
   ClientSecret string `yaml:"client_secret"`
 }
 
-
+var SessionTokens = make(map[string]string)
 var oauthCredentials = make(map[string]*oauth2.Config)
 
 func Initialize(config map[string]*OAuthCredential) {
@@ -38,7 +38,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) (int, string) {
     Domain: "127.0.0.1",
     // Secure: true,
   }
-  log.Println(tok)
+
   http.SetCookie(w, &cookie)
   url := map[string]string{"url": GetLoginURL(oauthType, tok)}
   data, _ := json.Marshal(url)

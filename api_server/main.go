@@ -9,10 +9,17 @@ import (
   "io/ioutil"
   "path/filepath"
   "github.com/makenneth/letspaint/api_server/controllers/oauth"
+  "github.com/makenneth/letspaint/api_server/utils/connection"
 )
 
+type ServerConfig struct {
+  Port int `yaml:"port"`
+}
+
 type Config struct {
+  Server *ServerConfig `yaml:"server"`
   OAuth map[string]*oauth.OAuthCredential `yaml:"oauth"`
+  DB map[string]string `yaml:"database"`
 }
 
 type ErrorMessage struct {
@@ -125,12 +132,20 @@ func main() {
   checkError(err)
 
   var config Config
+  var port string
   err = yaml.Unmarshal(yamlFile, &config)
   checkError(err)
   oauth.Initialize(config.OAuth)
-
+  connection.Connect(&config.DB)
   http.HandleFunc("/", httpHandler)
-  log.Fatal(http.ListenAndServe(":3000", nil))
+
+  if config.Server != nil && config.Server.Port != 0 {
+    port = fmt.Sprintf(":%d", config.Server.Port)
+  } else {
+    port = ":3000"
+  }
+  log.Printf("http server listening at port %s", port)
+  log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func checkError(err error) {

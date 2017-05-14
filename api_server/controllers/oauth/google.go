@@ -6,7 +6,6 @@ import (
   "net/http"
   "encoding/json"
   "golang.org/x/oauth2"
-  "github.com/makenneth/letspaint/api_server/utils/token"
   "github.com/makenneth/letspaint/api_server/models"
 )
 
@@ -43,22 +42,22 @@ func GoogleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
           if !data.Verified {
             // set error in cookie
           }
-          // cookie := http.Cookie{
-          //   Name: "oauth-tok",
-          //   Value: "",
-          //   HttpOnly: true,
-          // }
-          // http.SetCookie(w, &cookie)
 
-          user, err := json.Marshal(&models.User{Username: data.Name, Id: data.ServiceId})
-          log.Println(string(user[:]))
-          log.Println(err)
-          pid, _ := token.GenerateRandomToken(32)
+          user := &models.User{Name: data.Name, Id: data.ServiceId}
+          sessionToken, err := user.Save()
+
+          if err != "" {
+            return 500, "Database error"
+          }
+
+          userJson, _ := json.Marshal(user)
+          log.Println(string(userJson[:]))
           cookie := http.Cookie{
-            Name: "pid",
-            Value: pid,
+            Name: "session_token",
+            Value: sessionToken,
             Path: "/",
-            HttpOnly: false,
+            Secure: true,
+            HttpOnly: true,
           }
           http.SetCookie(w, &cookie)
           http.Redirect(w, r, "/login/success", 302)
