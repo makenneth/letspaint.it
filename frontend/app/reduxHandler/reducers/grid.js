@@ -52,18 +52,6 @@ export default function Grid(state = initialState, action) {
         usernames: setPartialUsernames(action.grid.usernames),
       };
 
-    case ActionTypes.USER_COUNT_UPDATE:
-      return {
-        ...state,
-        connectedUsers: action.count,
-      };
-
-    case ActionTypes.RANKING_UPDATE:
-      return {
-        ...state,
-        ranking: action.ranking,
-      };
-
     default:
       return state;
   }

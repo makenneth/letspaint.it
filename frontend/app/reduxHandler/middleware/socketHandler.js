@@ -1,5 +1,6 @@
 import ActionTypes from 'actionTypes';
 import * as WebSocketActions from 'actions/websocket';
+import { updateStatistics } from 'actions';
 let socket;
 
 export const socketMiddleware = (store) => next => action => {
@@ -29,6 +30,7 @@ export default function startWebSocket({ getState, dispatch }) {
         break;
       case 'PAINT_INPUT_MADE':
         dispatch(WebSocketActions.paintInputReceived(data));
+        dispatch(updateStatistics(data.username));
         break;
       case 'INITIAL_STATE':
         dispatch(WebSocketActions.partialInitialStateUpdate(data));
