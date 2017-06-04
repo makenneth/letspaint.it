@@ -1,6 +1,7 @@
 import ActionTypes from 'actionTypes';
 import * as WebSocketActions from 'actions/websocket';
 import { updateStatistics } from 'actions';
+
 let socket;
 
 export const socketMiddleware = (store) => next => action => {
