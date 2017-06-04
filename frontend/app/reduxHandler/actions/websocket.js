@@ -27,3 +27,10 @@ export function userCountUpdate(data) {
     count: data.count,
   };
 }
+
+export function rankingUpdate(data) {
+  return {
+    type: ActionTypes.RANKING_UPDATE,
+    ranking: data.ranking,
+  };
+}

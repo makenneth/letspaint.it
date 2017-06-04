@@ -14,6 +14,7 @@ const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
   usernames: [],
   connectedUsers: 0,
+  ranking: [],
   isLoading: true,
   isFetched: false,
 };
@@ -55,6 +56,12 @@ export default function Grid(state = initialState, action) {
       return {
         ...state,
         connectedUsers: action.count,
+      };
+
+    case ActionTypes.RANKING_UPDATE:
+      return {
+        ...state,
+        ranking: action.ranking,
       };
 
     default:

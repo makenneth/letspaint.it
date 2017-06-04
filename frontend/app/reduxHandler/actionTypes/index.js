@@ -2,12 +2,14 @@ import keymirror from 'keymirror';
 
 export default keymirror({
   PAINT_INPUT_MADE: null,
-  PAINT_INPUT_RECEIVED: null,
-  INITIAL_STATE_UPDATE: null,
   COLOR_PICKED: null,
   SET_CENTER: null,
   ADJUST_CANVAS_SCALE: null,
-  PARTIAL_INITIAL_STATE_UPDATE: null,
   START_CANVAS_LOADING: null,
+
+  PAINT_INPUT_RECEIVED: null,
+  PARTIAL_INITIAL_STATE_UPDATE: null,
+  INITIAL_STATE_UPDATE: null,
   USER_COUNT_UPDATE: null,
+  RANKING_UPDATE: null,
 });

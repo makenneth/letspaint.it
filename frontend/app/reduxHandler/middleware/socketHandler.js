@@ -36,6 +36,9 @@ export default function startWebSocket({ getState, dispatch }) {
       case 'FULL_INITIAL_STATE':
         dispatch(WebSocketActions.initialStateUpdate(data));
         break;
+      case 'RANKING_UPDATE':
+        dispatch(WebSocketActions.rankingUpdate(data));
+        break;
       default:
         break;
     }
