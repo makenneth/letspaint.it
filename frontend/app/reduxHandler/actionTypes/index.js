@@ -9,4 +9,5 @@ export default keymirror({
   ADJUST_CANVAS_SCALE: null,
   PARTIAL_INITIAL_STATE_UPDATE: null,
   START_CANVAS_LOADING: null,
+  USER_COUNT_UPDATE: null,
 });

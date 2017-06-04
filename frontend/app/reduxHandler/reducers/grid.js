@@ -13,9 +13,10 @@ import {
 const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
   usernames: [],
+  connectedUsers: 0,
   isLoading: true,
   isFetched: false,
-}
+};
 
 export default function Grid(state = initialState, action) {
   switch (action.type) {
@@ -48,6 +49,12 @@ export default function Grid(state = initialState, action) {
         isLoading: false,
         data: setPartialGrid(action.grid.colors),
         usernames: setPartialUsernames(action.grid.usernames),
+      };
+
+    case ActionTypes.USER_COUNT_UPDATE:
+      return {
+        ...state,
+        connectedUsers: action.count,
       };
 
     default:
