@@ -1,24 +1,19 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import Main from 'components/Main';
 import Auth from 'components/Auth';
+import Statistics from 'components/Statistics';
 import 'assets/reset.css';
 import './styles.scss';
 
-@connect(({ grid }) => ({
-  connectedUsers: grid.connectedUsers,
-}), {})
 class Application extends React.PureComponent {
   render() {
     return (
       <div className="app-container">
         <Auth />
         <h3>letspaint.it</h3>
-        <div>
+        <div className="layout">
           <Main />
-          <div>
-            Connected: {this.props.connectedUsers}
-          </div>
+          <Statistics />
         </div>
       </div>
     );

@@ -1,10 +1,24 @@
-.ranking-list ol {
-  > div {
-    font-size: 14px;
-    padding: 3px 0;
+.connected-count {
+  text-align: right;
+}
 
-    > span {
-      margin-left: 10px;
-    }
+.ranking-list {
+  padding: 0;
+  font-size: 15px;
+
+  td:nth-child(4) {
+    text-align: right;
+    padding-left: 0.5em;
+  }
+
+  td:nth-child(2),
+  td:nth-child(3) {
+    padding-left: 0.5em;
+  }
+
+  img {
+    font-style: 12px;
+    width: 25px;
+    height: 25px;
   }
 }
