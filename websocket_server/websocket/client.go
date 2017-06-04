@@ -9,6 +9,7 @@ type Client struct {
   ws *websocket.Conn
   server *Server
   done chan bool
+  Id int
   Username string
   send chan *Message
 }
@@ -71,3 +72,29 @@ func (self *Client) ListenRead() {
     }
   }
 }
+
+func (self *Client) HandleMessage(msg *Message) {
+  switch(msg.MessageType) {
+  case "PAINT_INPUT_MADE":
+    self.server.Broadcast() <- &msg
+    break
+  case "SET_USER_INFO":
+    if self.Username != "" {
+      log.Println("Username is being changed by user id", self.Id)
+      break
+    }
+    var u *User;
+    _ = json.Unmarshal(msg.Data, &u)
+    // probably check info across server
+    // one way to do this is to flip a coin...1/7 chance when a request is made
+    // we would check the token
+    self.Username = u.Username
+    self.Id = u.Id
+    data, _ := json.Marshal(true)
+    self.send <- &Message{"USER_INFO_SET", data}
+    break
+  default:
+    log.Println("Unknown message type received", msg.MessageType)
+  }
+}
+

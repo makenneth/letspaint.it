@@ -24,6 +24,11 @@ type RankingStats struct {
   Count int `json:"count"`
 }
 
+type User struct {
+  Id string `json:"id"`
+  Username string `json:"username"`
+}
+
 type Message struct {
   MessageType string `json:"type"`
   Data json.RawMessage `json:"data"`
@@ -102,8 +107,6 @@ func (self *Server) Listen() {
   for {
     select {
       case c := <-self.connect:
-        c.Username += strconv.Itoa(len(self.clients) + 1)
-        log.Printf("client %s connected", c.Username)
         self.clients = append(self.clients, c)
         go self.sendInitialState(c)
         go self.sendCountUpdate()
