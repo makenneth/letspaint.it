@@ -33,13 +33,19 @@ func (self *Client) Listen() {
 func (self *Client) ListenWrite() {
   for {
     select {
-    case msg := <-self.send:
-      log.Println("sending message to client %s", self.Username)
-      websocket.JSON.Send(self.ws, msg)
+    case msg, ok := <-self.send:
+      if ok {
+        log.Println("sending message to client %s", self.Username)
+        websocket.JSON.Send(self.ws, msg)
+      } else {
+        self.server.RemoveClient() <-self
+        self.done <- true
+        break
+      }
     case <-self.done:
       self.server.RemoveClient() <-self
       self.done <- true
-      return
+      break
     }
   }
 }
@@ -50,7 +56,7 @@ func (self *Client) ListenRead() {
     case <-self.done:
       self.server.RemoveClient() <- self
       self.done <- true
-      return
+      break
     default:
       var msg Message
       err := websocket.JSON.Receive(self.ws, &msg)
@@ -58,6 +64,7 @@ func (self *Client) ListenRead() {
       if err != nil {
         log.Println("err in %s...", self.Username)
         self.done <- true
+        break
       } else {
         self.server.Broadcast() <- &msg
       }

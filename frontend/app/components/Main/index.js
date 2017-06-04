@@ -12,6 +12,7 @@ const scales = [1, 2, 5, 10];
 @connect(({ auth, grid, canvas }) => ({
   username: auth.username,
   usernames: grid.usernames,
+  connectedUsers: grid.connectedUsers,
   center: canvas.center,
   scale: canvas.scale,
   pickedColor: canvas.color,
@@ -148,4 +149,3 @@ export default class Main extends Component {
     );
   }
 }
-// <i className="material-icons" onClick={this.saveImage}>save</i>

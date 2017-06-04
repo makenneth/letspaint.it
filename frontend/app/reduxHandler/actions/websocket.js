@@ -1,3 +1,5 @@
+import ActionTypes from 'actionTypes';
+
 export function paintInputReceived(input) {
   return {
     type: ActionTypes.PAINT_INPUT_RECEIVED,

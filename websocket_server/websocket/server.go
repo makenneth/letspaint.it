@@ -106,7 +106,15 @@ func (self *Server) Listen() {
         }
         go self.sendCountUpdate()
       case m := <-self.broadcast:
-        self.handleBroadcastMessage(m)
+        switch m.MessageType {
+        case "PAINT_INPUT_MADE":
+          go self.updateBoard(m)
+          go handler.Update(m)
+        }
+
+        for _, c := range self.clients {
+          c.Write() <- m
+        }
     }
   }
 }
@@ -116,17 +124,6 @@ func (self *Server) sendCountUpdate() {
   self.broadcast <- &Message{"USER_COUNT_UPDATE", data}
 }
 
-func (self *Server) handleBroadcastMessage(m *Message) {
-  switch m.messageType {
-  case "PAINT_INPUT_MADE":
-    go self.updateBoard(m)
-    go handler.Update(m)
-  }
-
-  for _, c := range self.clients {
-    c.Write() <- m
-  }
-}
 
 func (self *Server) sendInitialState(c *Client) {
   usernames := make([]string, 10000)
