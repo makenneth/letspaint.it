@@ -1,7 +1,7 @@
 {
   "name": "letsdraw.it",
   "version": "1.0.0",
-  "description": "- App to be decided... LOL",
+  "description": "Users all over the world can all paint together.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/makenneth/rabb.it.git"
+    "url": "git+https://github.com/makenneth/letspaint.it.git"
   },
   "keywords": [],
   "author": "Kenneth Ma",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/makenneth/letsdraw.it/issues"
+    "url": "https://github.com/makenneth/letspaint.it/issues"
   },
-  "homepage": "https://github.com/makenneth/letsdraw.it#readme",
+  "homepage": "https://github.com/makenneth/letspaint.it#readme",
   "dependencies": {
     "babel-core": "^6.24.0",
     "babel-plugin-transform-runtime": "^6.23.0",
