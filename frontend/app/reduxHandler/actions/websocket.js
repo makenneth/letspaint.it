@@ -34,3 +34,9 @@ export function rankingUpdate(data) {
     ranking: data.ranking,
   };
 }
+
+export function userInfoSet() {
+  return {
+    type: ActionTypes.USER_INFO_SET,
+  };
+}

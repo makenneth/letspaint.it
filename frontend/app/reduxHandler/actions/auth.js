@@ -3,6 +3,7 @@ import request from 'utils/request';
 import { browserHistory } from 'react-router';
 import startWebsocket from 'middleware/socketHandler';
 import store from 'reduxHandler/store';
+import { setUserInfo } from './paint';
 
 export function checkAuth() {
   return (dispatch) => {
@@ -99,6 +100,7 @@ export function getUserInfo() {
     }).then(
       res => {
         startWebsocket(store);
+        dispatch(setUserInfo(info));
         dispatch(getUserInfoSuccess(info));
       },
       err => dispatch(getUserInfoFailure(err)),
@@ -125,5 +127,12 @@ function getUserInfoFailure(err) {
   return {
     type: ActionTypes.GET_USER_INFO_FAILURE,
     err,
+  };
+}
+
+export function setUserInfo(info) {
+  return {
+    type: ActionTypes.SET_USER_INFO,
+    info,
   };
 }

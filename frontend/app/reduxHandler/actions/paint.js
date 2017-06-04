@@ -40,3 +40,4 @@ export function startCanvasLoading() {
     type: ActionTypes.START_CANVAS_LOADING,
   };
 }
+

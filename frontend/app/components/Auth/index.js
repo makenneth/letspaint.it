@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { logIn } from 'actions';
 import './styles.scss';
 
-@connect(() => ({}), ({ logIn }))
+@connect(() => ({}), ({ logIn, signUp }))
 class Auth extends Component {
   constructor(props) {
     super(props);

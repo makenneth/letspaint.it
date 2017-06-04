@@ -13,6 +13,12 @@ export const socketMiddleware = (store) => next => action => {
         data: action.input,
       }));
       break;
+    case ActionTypes.SET_USER_INFO:
+      socket.send(JSON.stringify({
+        type: 'SET_USER_INFO',
+        data: action.data,
+      }));
+      break
     default:
       break;
   }
@@ -31,7 +37,7 @@ export default function startWebSocket({ getState, dispatch }) {
         break;
       case 'PAINT_INPUT_MADE':
         dispatch(WebSocketActions.paintInputReceived(data));
-        dispatch(updateStatistics(data.username));
+        dispatch(WebSocketActions.updateStatistics(data.username));
         break;
       case 'INITIAL_STATE':
         dispatch(WebSocketActions.partialInitialStateUpdate(data));
@@ -41,6 +47,9 @@ export default function startWebSocket({ getState, dispatch }) {
         break;
       case 'RANKING_UPDATE':
         dispatch(WebSocketActions.rankingUpdate(data));
+        break;
+      case 'USER_INFO_SET':
+        dispatch(WebSocketActions.userInfoSet(data));
         break;
       default:
         break;

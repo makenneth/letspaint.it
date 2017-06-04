@@ -8,7 +8,6 @@ import './styles.scss';
 
 class Application extends React.PureComponent {
   render() {
-    console.log('Application')
     return (
       <div className="app-container">
         <h3>letspaint.it</h3>

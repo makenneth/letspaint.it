@@ -6,24 +6,26 @@ const getUsername = () => {
 
 const initialState = {
   isLoading: false,
+  isLoaded: false,
   user: null,
 };
 
 export default function Auth(state = { username: getUsername() }, action) {
   switch (action.type) {
-    case ActionTypes.LOG_IN_REQUEST:
+    case ActionTypes.AUTH_REQUEST:
       return {
         ...state,
+        isLoaded: false,
         isLoading: true,
       };
 
-    case ActionTypes.LOG_IN_SUCCESS:
+    case ActionTypes.AUTH_SUCCESS:
       return {
         ...state,
         isLoading: false,
       };
 
-    case ActionTypes.LOG_IN_FAILURE:
+    case ActionTypes.AUTH_FAILURE:
       return {
         ...state,
         isLoading: false,
@@ -36,10 +38,11 @@ export default function Auth(state = { username: getUsername() }, action) {
       };
 
     case ActionTypes.GET_USER_INFO_SUCCESS:
+      // stop loading when username is acknowledged by the server
       return {
         ...state,
+        isLoaded: true,
         info: action.info,
-        isLoading: false
       };
 
     case ActionTypes.GET_USER_INFO_FAILURE:
@@ -47,6 +50,12 @@ export default function Auth(state = { username: getUsername() }, action) {
         ...state,
         isLoading: false,
         err: action.err,
+      };
+
+    case ActionTypes.USER_INFO_SET:
+      return {
+        ...state,
+        isLoading: false,
       };
 
     default:

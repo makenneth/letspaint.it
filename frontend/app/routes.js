@@ -8,7 +8,7 @@ export default function getRoutes(store) {
     function checkAuth() {
       const { auth } = store.getState();
       if ((auth.id && auth.username) === bool) {
-        replace('/login');
+        replace(bool ? '/login' : '/paint');
       }
 
       callback();
@@ -17,7 +17,10 @@ export default function getRoutes(store) {
     if (auth.isLoaded) {
       checkAuth();
     } else {
-      dispatch(loadAuth()).then(checkAuth);
+      dispatch(loadAuth()).then(
+        checkAuth,
+        () => replace(bool ? '/login' : '/paint')
+      );
     }
   };
 
