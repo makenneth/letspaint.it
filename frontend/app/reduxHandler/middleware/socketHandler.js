@@ -1,5 +1,5 @@
 import ActionTypes from 'actionTypes';
-import { paintInputReceived, initialStateUpdate, partialInitialStateUpdate } from 'actions';
+import * as WebSocketActions from 'actions/websocket';
 let socket;
 
 export const socketMiddleware = (store) => next => action => {
@@ -24,14 +24,17 @@ export default function startWebSocket({ getState, dispatch }) {
   const messageHandler = (res) => {
     const { type, data } = JSON.parse(res.data);
     switch (type) {
+      case 'USER_COUNT_UPDATE':
+        dispatch(WebSocketActions.userCountUpdate(data));
+        break;
       case 'PAINT_INPUT_MADE':
-        dispatch(paintInputReceived(data));
+        dispatch(WebSocketActions.paintInputReceived(data));
         break;
       case 'INITIAL_STATE':
-        dispatch(partialInitialStateUpdate(data));
+        dispatch(WebSocketActions.partialInitialStateUpdate(data));
         break;
       case 'FULL_INITIAL_STATE':
-        dispatch(initialStateUpdate(data));
+        dispatch(WebSocketActions.initialStateUpdate(data));
         break;
       default:
         break;
