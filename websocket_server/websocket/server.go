@@ -14,6 +14,10 @@ type RedisData struct {
   Username string `json:"username"`
 }
 
+type Ranking struct {
+  Data []string `json:"Ranking"`
+}
+
 type Message struct {
   MessageType string `json:"type"`
   Data json.RawMessage `json:"data"`
@@ -124,7 +128,6 @@ func (self *Server) sendCountUpdate() {
   self.broadcast <- &Message{"USER_COUNT_UPDATE", data}
 }
 
-
 func (self *Server) sendInitialState(c *Client) {
   usernames := make([]string, 10000)
   colors := make([]int8, 10000)
@@ -151,4 +154,29 @@ func (self *Server) updateBoard(msg *Message) {
   }
   self.usernames[data.Pos] = data.Username
   self.colors[data.Pos] = data.Color
+}
+
+func (self *Server) getRanking() {
+  usernames := make([][]string, 250000)
+  counts := make(map[string]int)
+  for _, username := range self.usernames {
+    if _, ok := counts[username]; ok {
+      counts[username]++
+    } else {
+      counts[username] = 1
+    }
+  }
+
+  for username, count := range counts {
+    usernames[count] = append(usernames[count], username)
+  }
+
+  ranking := make([]string, 10)
+  for i, j := 0, len(usernames) - 1; i < 10 && j >= 0; j-- {
+    if len(usernames[j]) > 0 {
+      ranking = append(ranking, usernames[j]...)
+    }
+  }
+  data, _ := json.Marshal(&Ranking{ranking})
+  self.broadcast <- &Message{"Ranking Update", data}
 }
