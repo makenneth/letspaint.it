@@ -19,6 +19,10 @@ type Message struct {
   Data json.RawMessage `json:"data"`
 }
 
+type Count struct {
+  Value int `json:"count"`
+}
+
 type BoardData struct {
   Colors []int8 `json:"colors"`
   Usernames []string `json:"usernames"`
@@ -91,6 +95,7 @@ func (self *Server) Listen() {
         log.Printf("client %s connected", c.Username)
         self.clients = append(self.clients, c)
         go self.sendInitialState(c)
+        go self.sendCountUpdate()
       case c := <-self.done:
         log.Printf("client %s disconnected", c.Username)
         for i := range self.clients {
@@ -99,13 +104,27 @@ func (self *Server) Listen() {
             break
           }
         }
+        go self.sendCountUpdate()
       case m := <-self.broadcast:
-        go self.updateBoard(m)
-        go handler.Update(m)
-        for _, c := range self.clients {
-          c.Write() <- m
-        }
+        self.handleBroadcastMessage(m)
     }
+  }
+}
+
+func (self *Server) sendCountUpdate() {
+  data, _ := json.Marshal(&Count{len(self.clients)})
+  self.broadcast <- &Message{"USER_COUNT_UPDATE", data}
+}
+
+func (self *Server) handleBroadcastMessage(m *Message) {
+  switch m.messageType {
+  case "PAINT_INPUT_MADE":
+    go self.updateBoard(m)
+    go handler.Update(m)
+  }
+
+  for _, c := range self.clients {
+    c.Write() <- m
   }
 }
 
