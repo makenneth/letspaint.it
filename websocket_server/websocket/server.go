@@ -6,6 +6,7 @@ import (
   "github.com/go-redis/redis"
   "golang.org/x/net/websocket"
   "log"
+  "time"
   "strconv"
 )
 
@@ -15,7 +16,12 @@ type RedisData struct {
 }
 
 type Ranking struct {
-  Data []string `json:"Ranking"`
+  Data []*RankingStats `json:"ranking"`
+}
+
+type RankingStats struct {
+  Username string `json:"username"`
+  Count int `json:"count"`
 }
 
 type Message struct {
@@ -92,6 +98,7 @@ func (self *Server) Listen() {
   http.Handle(self.path, websocket.Handler(onConnected))
   self.colors, self.usernames = handler.GetBoard()
   log.Println("get board done")
+  go self.updateRanking()
   for {
     select {
       case c := <-self.connect:
@@ -156,27 +163,31 @@ func (self *Server) updateBoard(msg *Message) {
   self.colors[data.Pos] = data.Color
 }
 
-func (self *Server) getRanking() {
-  usernames := make([][]string, 250000)
-  counts := make(map[string]int)
-  for _, username := range self.usernames {
-    if _, ok := counts[username]; ok {
-      counts[username]++
-    } else {
-      counts[username] = 1
+func (self *Server) updateRanking() {
+  for {
+    usernames := make([][]*RankingStats, 250000)
+    counts := make(map[string]int)
+    for _, username := range self.usernames {
+      if _, ok := counts[username]; ok {
+        counts[username]++
+      } else {
+        counts[username] = 1
+      }
     }
-  }
 
-  for username, count := range counts {
-    usernames[count] = append(usernames[count], username)
-  }
-
-  ranking := make([]string, 10)
-  for i, j := 0, len(usernames) - 1; i < 10 && j >= 0; j-- {
-    if len(usernames[j]) > 0 {
-      ranking = append(ranking, usernames[j]...)
+    for username, count := range counts {
+      usernames[count] = append(usernames[count], &RankingStats{username, count})
     }
+
+    ranking := make([]*RankingStats, 0)
+    for i, j := 0, len(usernames) - 1; i < 10 && j >= 0; j-- {
+      if len(usernames[j]) > 0 {
+        ranking = append(ranking, usernames[j]...)
+        i += len(usernames[j])
+      }
+    }
+    data, _ := json.Marshal(&Ranking{ranking})
+    self.broadcast <- &Message{"RANKING_UPDATE", data}
+    time.Sleep(10 * time.Second)
   }
-  data, _ := json.Marshal(&Ranking{ranking})
-  self.broadcast <- &Message{"Ranking Update", data}
 }
