@@ -8,8 +8,10 @@ import (
   "log"
   "time"
   "strconv"
+  "sync"
 )
 
+var mutex sync.Mutex
 type RedisData struct {
   Color int8 `json:"color"`
   Username string `json:"username"`
@@ -162,8 +164,10 @@ func (self *Server) updateBoard(msg *Message) {
   if err != nil {
     log.Println("json unmarshalling error")
   }
+  mutex.Lock()
   self.usernames[data.Pos] = data.Username
   self.colors[data.Pos] = data.Color
+  mutex.Unlock()
 }
 
 func (self *Server) updateRanking() {
