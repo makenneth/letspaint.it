@@ -18,32 +18,35 @@ type User struct {
 
 func (self *User) Save() (string, string) {
   token, _ := token.GenerateRandomToken(32)
-  mutex.Lock()
-  defer mutex.Unlock()
+  // mutex.Lock()
+  // defer mutex.Unlock()
 
   tx, err := connection.DB.Begin()
   if err != nil {
-    return "", "Failed to begin transaction"
+    log.Println(err)
+    return token, "Failed to begin transaction"
   }
 
   var id int
+  log.Println(token)
   err = connection.DB.QueryRow(`
-    INSERT INTO users (token) values ($1) returning id;
+    INSERT INTO users (token) VALUES ($1) returning id;
   `, token).Scan(&id)
   if err != nil {
     tx.Rollback()
     if err, ok := err.(*pq.Error); ok {
       log.Println("pq error:", err.Code.Name())
     }
-    return "", "Failed to save user"
+    return token, "Failed to save user"
   }
 
   sqlStmt := fmt.Sprintf(`INSERT INTO
-    oauth_info (user_id, name, service_id)
+    oauth_infos (user_id, name, service_id)
     VALUES (%d, '%s', '%s');`, id, self.Name, self.Id)
-
+  log.Println(sqlStmt)
   _, err = connection.DB.Exec(sqlStmt)
   if err != nil {
+    log.Println(err)
     tx.Rollback()
     return "", "Failed to save auth info"
   }
