@@ -15,20 +15,20 @@ type GoogleOAuthData struct {
   Name string `json:"name"`
 }
 
-func GetLoginURL(authType, state string) string {
-  return oauthCredentials[authType].AuthCodeURL(state)
+func GetLoginURL(requestType, authType, state string) string {
+  return oauthCredentials[authType][requestType].AuthCodeURL(state)
 }
 
-func GoogleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
+func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request) (int, string) {
   cookie, err := r.Cookie("oauth-tok")
   if _, ok := oauthCredentials["google"]; !ok {
     return 404, "OAuth Type not supported"
   }
   if err == nil && cookie.String() != "" {
     if r.URL.Query().Get("state") == cookie.Value {
-      tok, err := oauthCredentials["google"].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
+      tok, err := oauthCredentials["google"][requestType].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
       if err == nil {
-        client := oauthCredentials["google"].Client(oauth2.NoContext, tok)
+        client := oauthCredentials["google"][requestType].Client(oauth2.NoContext, tok)
         resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
         if err == nil {
           defer resp.Body.Close()
@@ -56,7 +56,6 @@ func GoogleOAuthHandler(w http.ResponseWriter, r *http.Request) (int, string) {
             Name: "session_token",
             Value: sessionToken,
             Path: "/",
-            Secure: true,
             HttpOnly: true,
           }
           http.SetCookie(w, &cookie)
