@@ -42,12 +42,27 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
           if !data.Verified {
             // set error in cookie
           }
-
-          user := &models.User{Name: data.Name, Id: data.ServiceId}
-          sessionToken, err := user.Save()
-
-          if err != "" {
-            return 500, "Database error"
+          var (
+            sessionToken string
+            user *models.User
+          )
+          if requestType == "signup" {
+            user = &models.User{Name: data.Name, ServiceId: data.ServiceId}
+            sessionToken, err = user.Save()
+            if err != nil {
+              log.Println(err)
+              return 404, "Unable to save user"
+            }
+          } else {
+            user, err = models.FindByOAuthId(data.ServiceId)
+            if err != nil {
+              return 404, "User Not Found"
+            }
+            sessionToken, err = user.ResetSessionToken()
+            if err != nil {
+              log.Println("Unable reset session token error")
+              return 500, "Internal server error"
+            }
           }
 
           userJson, _ := json.Marshal(user)
@@ -59,7 +74,7 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
             HttpOnly: true,
           }
           http.SetCookie(w, &cookie)
-          http.Redirect(w, r, "/login/success", 302)
+          http.Redirect(w, r, "/auth/success", 302)
           return 0, ""
         }
       }

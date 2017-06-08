@@ -34,7 +34,7 @@ func GetTeamUsers(id int) ([]*User, error) {
 
   for rows.Next() {
     err = rows.Scan(&user_id, &name)
-    users = append(users, &User{UserId: user_id, Name: name})
+    users = append(users, &User{Id: user_id, Name: name})
     if err != nil {
       return nil, err
     }

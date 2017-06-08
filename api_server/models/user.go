@@ -3,6 +3,7 @@ package models
 import (
   "sync"
   "log"
+  "errors"
   "fmt"
   "github.com/lib/pq"
   "github.com/makenneth/letspaint/api_server/utils/connection"
@@ -11,12 +12,12 @@ import (
 
 var mutex sync.Mutex
 type User struct {
-  Id string `json:"id"`
-  UserId int `json:"user_id"`
+  Id int `json:"id"`
+  ServiceId string
   Name string  `json:"name"`
 }
 
-func (self *User) Save() (string, string) {
+func (self *User) Save() (string, error) {
   token, _ := token.GenerateRandomToken(32)
   // mutex.Lock()
   // defer mutex.Unlock()
@@ -24,7 +25,7 @@ func (self *User) Save() (string, string) {
   tx, err := connection.DB.Begin()
   if err != nil {
     log.Println(err)
-    return token, "Failed to begin transaction"
+    return token, errors.New("Failed to begin transaction")
   }
 
   var id int
@@ -37,34 +38,63 @@ func (self *User) Save() (string, string) {
     if err, ok := err.(*pq.Error); ok {
       log.Println("pq error:", err.Code.Name())
     }
-    return token, "Failed to save user"
+    return token, errors.New("Failed to save user")
   }
 
   sqlStmt := fmt.Sprintf(`INSERT INTO
     oauth_infos (user_id, name, service_id)
-    VALUES (%d, '%s', '%s');`, id, self.Name, self.Id)
+    VALUES (%d, '%s', '%s');`, id, self.Name, self.ServiceId)
   log.Println(sqlStmt)
   _, err = connection.DB.Exec(sqlStmt)
   if err != nil {
     log.Println(err)
     tx.Rollback()
-    return "", "Failed to save auth info"
+    return "", errors.New("Failed to save auth info")
   }
   tx.Commit()
 
-  return token, ""
+  return token, nil
 }
 
-func GetBySessionToken(token string) (string, error) {
-  var name string
+func FindBySessionToken(token string) (*User, error) {
+  var (
+    id int
+    name string
+  )
   err := connection.DB.QueryRow(`
-    SELECT o.name from users AS u
+    SELECT u.id, o.name from users AS u
     WHERE token = $1
     INNER JOIN oauth_info AS o
     ON u.id = o.user_id;
-  `, token).Scan(&name)
+  `, token).Scan(&id, &name)
   if err != nil {
-    return "", err
+    return nil, err
   }
-  return name, nil
+  return &User{Id: id, Name: name}, nil
+}
+
+func (self *User) ResetSessionToken() (string, error) {
+  tok, _ := token.GenerateRandomToken(32)
+  _, err := connection.DB.Exec(`
+    UPDATE users SET token = $1 WHERE id = $2
+  `, tok, self.Id)
+
+  return tok, err
+}
+
+func FindByOAuthId(serviceId string) (*User, error) {
+  var (
+    id int
+    name string
+  )
+  err := connection.DB.QueryRow(`
+    SELECT u.id, o.name from users AS u
+    INNER JOIN oauth_info AS o
+    ON u.id = o.user_id
+    WHERE o.service_id = $1;
+  `, serviceId).Scan(&id, &name)
+  if err != nil {
+    return nil, err
+  }
+  return &User{Id: id, Name: name}, nil
 }
