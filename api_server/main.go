@@ -9,6 +9,7 @@ import (
   "io/ioutil"
   "path/filepath"
   "github.com/makenneth/letspaint/api_server/controllers/oauth"
+  "github.com/makenneth/letspaint/api_server/controllers/users"
   "github.com/makenneth/letspaint/api_server/utils/connection"
 )
 
@@ -120,6 +121,8 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
     code, msg = oauth.LogInHandler(w, r)
   case "/oauth/signup":
     code, msg = oauth.SignUpHandler(w, r)
+  case "/user":
+    code, msg = users.GetProfileInfo(w, r)
   default:
     code, msg = templateHandler(w, r)
   }

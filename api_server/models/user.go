@@ -13,14 +13,12 @@ import (
 var mutex sync.Mutex
 type User struct {
   Id int `json:"id"`
-  ServiceId string
+  ServiceId string `json:"-"`
   Name string  `json:"name"`
 }
 
 func (self *User) Save() (string, error) {
   token, _ := token.GenerateRandomToken(32)
-  // mutex.Lock()
-  // defer mutex.Unlock()
 
   tx, err := connection.DB.Begin()
   if err != nil {
@@ -64,7 +62,7 @@ func FindBySessionToken(token string) (*User, error) {
   err := connection.DB.QueryRow(`
     SELECT u.id, o.name from users AS u
     WHERE token = $1
-    INNER JOIN oauth_info AS o
+    INNER JOIN oauth_infos AS o
     ON u.id = o.user_id;
   `, token).Scan(&id, &name)
   if err != nil {
@@ -89,10 +87,16 @@ func FindByOAuthId(serviceId string) (*User, error) {
   )
   err := connection.DB.QueryRow(`
     SELECT u.id, o.name from users AS u
-    INNER JOIN oauth_info AS o
+    INNER JOIN oauth_infos AS o
     ON u.id = o.user_id
     WHERE o.service_id = $1;
   `, serviceId).Scan(&id, &name)
+
+  fmt.Printf(`SELECT u.id, o.name from users AS u
+    INNER JOIN oauth_infos AS o
+    ON u.id = o.user_id
+    WHERE o.service_id = '%s';
+  `, serviceId)
   if err != nil {
     return nil, err
   }
