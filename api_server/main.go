@@ -112,10 +112,14 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
   var code int
   var msg string
   switch r.URL.Path {
-  case "/oauth/google":
-    code, msg = oauth.GoogleOAuthHandler(w, r)
+  case "/oauth/google/signup":
+    code, msg = oauth.GoogleOAuthHandler("signup", w, r)
+  case "/oauth/google/login":
+    code, msg = oauth.GoogleOAuthHandler("login", w, r)
   case "/oauth/login":
-    code, msg = oauth.LoginHandler(w, r)
+    code, msg = oauth.LogInHandler(w, r)
+  case "/oauth/signup":
+    code, msg = oauth.SignUpHandler(w, r)
   default:
     code, msg = templateHandler(w, r)
   }

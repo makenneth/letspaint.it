@@ -15,9 +15,10 @@ var acceptedFields = [...]string{
   "host",
   "port",
   "connect_timeout",
+  "sslmode",
 }
 
-func contains(arr [6]string, s string) bool {
+func contains(arr [7]string, s string) bool {
   for _, el := range arr {
     if el == s {
       return true
@@ -31,7 +32,7 @@ func getConnectString(config *map[string]string) string {
   var connectStr string
   for field, value := range *config {
     if contains(acceptedFields, field) {
-      connectStr += fmt.Sprintf(" %s %s", field, value)
+      connectStr += fmt.Sprintf(" %s=%s", field, value)
     }
   }
 
@@ -44,7 +45,8 @@ func Connect(config *map[string]string) {
   db, err := sql.Open("postgres", connectStr)
   if err != nil {
     log.Fatal("Fail to connect to postgres ---\n", err)
+  } else {
+    log.Println("Connection to postgres --- Success")
+    DB = db
   }
-  log.Println("Connection to postgres --- Success")
-  DB = db
 }
