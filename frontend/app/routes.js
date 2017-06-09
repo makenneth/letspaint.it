@@ -24,15 +24,18 @@ export default function getRoutes(store) {
     }
   };
 
-          // <Route onEnter={ensureLogin.bind(null, true)}>
   return (
     <Provider store={store}>
       <Router history={browserHistory}>
         <Route path="/" component={Application}>
-          <IndexRoute component={Main} />
-          <Route path="paint" component={Main} />
-          <Route path="login" component={Auth} />
-          <Route path="signup" component={Auth} />
+          <Route onEnter={ensureLogin.bind(null, true)}>
+            <IndexRoute component={Main} />
+            <Route path="paint" component={Main} />
+          </Route>
+          <Route onEnter={ensureLogin.bind(null, false)}>
+            <Route path="login" component={Auth} />
+            <Route path="signup" component={Auth} />
+          </Route>
         </Route>
         <Route path="/auth/success" component={LogInSuccess} />
       </Router>

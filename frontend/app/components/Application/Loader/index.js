@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { stopLoading } from 'actions';
 import { Spinner } from '_common';
 
-@connect(({ loader: isLoading }) => ({ isLoading }), { stopLoading })
 export default class Loader extends React.Component {
   componentWillReceiveProps(nextProps) {
     if (!this.props.isLoading && nextProps.isLoading) {

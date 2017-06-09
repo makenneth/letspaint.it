@@ -4,6 +4,8 @@ import { browserHistory } from 'react-router';
 import startWebsocket from 'middleware/socketHandler';
 import store from 'reduxHandler/store';
 import { setUserInfo } from './paint';
+import { startLoading, stopLoading } from './loader';
+import { alertSuccessMessage, alertErrorMessage } from './alert';
 
 export function checkAuth() {
   return (dispatch) => {
@@ -28,10 +30,11 @@ export function logIn(type) {
       const int = setInterval(checkIfWindowCloses, 500);
       function checkIfWindowCloses() {
         if (newWindow.closed) {
-          console.log('closed');
           clearInterval(int);
           if (document.cookie.oauth_error) {
-            // display error
+            dispatch(alertErrorMessage(document.cookie.oauth_error));
+          } else {
+            dispatch(getUserInfo());
           }
         }
       }
@@ -55,7 +58,11 @@ export function signUp() {
       function checkIfWindowCloses() {
         if (newWindow.closed) {
           clearInterval(int);
-          console.log(document.cookie);
+          if (document.cookie.oauth_error) {
+            dispatch(alertErrorMessage(document.cookie.oauth_error));
+          } else {
+            dispatch(getUserInfo());
+          }
         }
       }
     }).catch((err) => {
@@ -96,9 +103,13 @@ export function getUserInfo() {
         startWebsocket(store);
         // instead should send token to websocket ??
         dispatch(setUserInfo(info));
+        dispatch(alertSuccessMessage('Logged in successfully'));
         dispatch(getUserInfoSuccess(info));
       },
-      err => dispatch(getUserInfoFailure(err)),
+      err => {
+        dispatch(getUserInfoFailure(err));
+        dispatch(alertErrorMessage(err));
+      }
     ).catch(err => {
       console.warn(err);
     });
