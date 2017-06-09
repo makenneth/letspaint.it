@@ -25,7 +25,7 @@ type Config struct {
 
 type ErrorMessage struct {
   Error struct {
-    Message string `json:"message"`
+    Message error `json:"message"`
   } `json:"error"`
 }
 
@@ -93,14 +93,14 @@ const html = `
   </html>
 `;
 
-func templateHandler(w http.ResponseWriter, r *http.Request) (int, string) {
+func templateHandler(w http.ResponseWriter, r *http.Request) (int, error) {
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   fmt.Fprint(w, html)
 
-  return 0, ""
+  return 0, nil
 }
 
-func errorResponse(w http.ResponseWriter, code int, message string) {
+func errorResponse(w http.ResponseWriter, code int, message error) {
   w.WriteHeader(code)
   err := &ErrorMessage{}
   err.Error.Message = message
@@ -109,9 +109,11 @@ func errorResponse(w http.ResponseWriter, code int, message string) {
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-  // w.Header().Set("Content-Type", "application/json")
-  var code int
-  var msg string
+  w.Header().Set("Content-Type", "application/json")
+  var (
+    code int
+    msg error
+  )
   switch r.URL.Path {
   case "/oauth/google/signup":
     code, msg = oauth.GoogleOAuthHandler("signup", w, r)

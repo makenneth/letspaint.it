@@ -2,35 +2,37 @@ package users
 
 import (
   "net/http"
-  "log"
-  "github.com/makenneth/letspaint/api_server/models/user"
+  // "log"
+  "encoding/json"
+  "errors"
+  "github.com/makenneth/letspaint/api_server/models"
+  "github.com/makenneth/letspaint/api_server/utils/cookieJar"
 )
 
-func getProfileInfo(w http.ResponseWriter, r *http.Request) (int, string) {
+func GetProfileInfo(w http.ResponseWriter, r *http.Request) (int, error) {
   if r.Method != "GET" {
-    return 404, "Method not supported"
+    return 404, errors.New("Method not supported")
   }
 
-  token, err := r.Cookie("session_token")
-  if err != nil || token == "" {
-    return 404, "Session token not found."
-  }
-  u, err := user.GetBySessionToken(token)
+  token, err := cookieJar.GetSessionToken(r)
   if err != nil {
-    cookie := http.Cookie{
-      Name: "session_token",
-      Value: "",
-      Path: "/",
-      HttpOnly: true,
-    }
-    http.SetCookie(w, &cookie)
-    return 404, "User Not Found. Session may have expired."
+    return 403, errors.New("Token not found.")
   }
-
+  u, err := models.FindBySessionToken(token)
+  if err != nil {
+    cookieJar.SetSessionToken(w, "")
+    return 404, errors.New("User Not Found. Session may have expired.")
+  }
+  sessionToken, err := u.ResetSessionToken()
+  if err != nil {
+    return 500, errors.New("Database error.")
+  }
+  cookieJar.SetSessionToken(w, sessionToken)
   data, err := json.Marshal(u)
   w.WriteHeader(200)
   w.Write(data)
 
-  return 0, ""
+  return 0, nil
 }
+
 
