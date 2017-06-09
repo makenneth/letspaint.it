@@ -21,4 +21,7 @@ export default keymirror({
   AUTH_ERROR: null,
   AUTH_REQUEST: null,
   USER_INFO_SET: null,
+
+  START_LOADING: null,
+  STOP_LOADING: null,
 });

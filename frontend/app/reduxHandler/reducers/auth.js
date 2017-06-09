@@ -1,16 +1,12 @@
 import ActionTypes from 'actionTypes';
 
-const getUsername = () => {
-  return `user${Math.floor(Math.random() * 50)}`;
-};
-
 const initialState = {
   isLoading: false,
   isLoaded: false,
-  user: null,
+  info: null,
 };
 
-export default function Auth(state = { username: getUsername() }, action) {
+export default function Auth(state = initialState, action) {
   switch (action.type) {
     case ActionTypes.AUTH_REQUEST:
       return {

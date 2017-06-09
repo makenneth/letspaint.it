@@ -11,13 +11,8 @@ export function checkAuth() {
     // if not, reject
     // if yes, then send a request to getUserInfo
     // which will return the current info if logged in
-    /*
-     if (!document.cookie) {
-        return Promise.reject(false)
-     }
 
-     return dispatch(getUserInfo());
-    */
+    return dispatch(getUserInfo());
   };
 }
 
@@ -33,11 +28,11 @@ export function logIn(type) {
       const int = setInterval(checkIfWindowCloses, 500);
       function checkIfWindowCloses() {
         if (newWindow.closed) {
-          // dispatch(logInSuccess());
-          //
+          console.log('closed');
           clearInterval(int);
-          console.log(document.cookie);
-          // dispatch(getUserInfo());
+          if (document.cookie.oauth_error) {
+            // display error
+          }
         }
       }
     }).catch((err) => {
@@ -47,7 +42,7 @@ export function logIn(type) {
   };
 }
 
-export function signIn() {
+export function signUp() {
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/signup', {
@@ -59,10 +54,8 @@ export function signIn() {
       const int = setInterval(checkIfWindowCloses, 500);
       function checkIfWindowCloses() {
         if (newWindow.closed) {
-          // dispatch(logInSuccess());
           clearInterval(int);
           console.log(document.cookie);
-          // dispatch(getUserInfo());
         }
       }
     }).catch((err) => {
@@ -94,12 +87,14 @@ function authRequest() {
 export function getUserInfo() {
   return (dispatch) => {
     dispatch(getUserInfoRequest());
-    return request('/user', {
+    return request('/api/user', {
       type: 'GET',
       credentials: 'include',
     }).then(
       res => {
+        const info = res.info;
         startWebsocket(store);
+        // instead should send token to websocket ??
         dispatch(setUserInfo(info));
         dispatch(getUserInfoSuccess(info));
       },

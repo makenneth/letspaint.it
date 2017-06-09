@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Loader = ({ isLoading }) => {
+const Spinner = ({ isLoading }) => {
   if (isLoading) {
     return (
       <div className="overlay">
@@ -12,4 +12,4 @@ const Loader = ({ isLoading }) => {
   return null;
 };
 
-export default Loader;
+export default Spinner;

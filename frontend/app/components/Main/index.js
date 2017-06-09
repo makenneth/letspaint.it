@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Canvas from 'components/Canvas';
-import { Loader } from '_common';
+import { Spinner } from '_common';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from 'constants';
 import { adjustCanvasScale, pickColor } from 'actions';
 import ColorPicker from './ColorPicker';
@@ -94,7 +94,7 @@ export default class Main extends Component {
     const usernameAtPixel = usernames[(posY * 500) + posX];
     const occupiedBy = (!usernameAtPixel && 'None') || (usernameAtPixel === username && 'You') ||
       usernameAtPixel;
-
+    console.log('main');
     return (
       <div className="main-container">
         <div className="canvas-container">
@@ -123,7 +123,7 @@ export default class Main extends Component {
               </div>
             </div>
           }
-          <Loader isLoading={isLoading} />
+          <Spinner isLoading={isLoading} />
         </div>
         <div className="user-controls">
           <ColorPicker

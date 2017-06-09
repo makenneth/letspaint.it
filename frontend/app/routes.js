@@ -1,6 +1,6 @@
 import React from 'react';
 import { Application, LogInSuccess, Auth, Main } from 'components';
-import { Route, Router, browserHistory } from 'react-router';
+import { Route, Router, browserHistory, IndexRoute } from 'react-router';
 import { Provider } from 'react-redux';
 
 export default function getRoutes(store) {
@@ -24,17 +24,17 @@ export default function getRoutes(store) {
     }
   };
 
+          // <Route onEnter={ensureLogin.bind(null, true)}>
   return (
     <Provider store={store}>
       <Router history={browserHistory}>
         <Route path="/" component={Application}>
-          <Route onEnter={ensureLogin.bind(null, true)}>
-            <Route path="/paint" component={Main} />
-          </Route>
-          <Route path="/login" component={Auth} />
-          <Route path="/signup" component={Auth} />
+          <IndexRoute component={Main} />
+          <Route path="paint" component={Main} />
+          <Route path="login" component={Auth} />
+          <Route path="signup" component={Auth} />
         </Route>
-        <Route path="/login/success" component={LogInSuccess} />
+        <Route path="/auth/success" component={LogInSuccess} />
       </Router>
     </Provider>
   );

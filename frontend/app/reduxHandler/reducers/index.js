@@ -3,10 +3,12 @@ import grid from './grid';
 import canvas from './canvas';
 import statistics from './statistics';
 import auth from './auth';
+import loader from './loader';
 
 export default combineReducers({
   grid,
   canvas,
   statistics,
   auth,
+  loader,
 });

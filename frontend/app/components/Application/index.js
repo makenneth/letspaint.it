@@ -2,6 +2,7 @@ import React from 'react';
 import Main from 'components/Main';
 import Auth from 'components/Auth';
 import Statistics from 'components/Statistics';
+import Loader from './Loader'
 
 import 'assets/reset.css';
 import './styles.scss';
@@ -16,6 +17,7 @@ class Application extends React.PureComponent {
           <Statistics />
         </div>
         {this.props.children}
+        <Loader />
       </div>
     );
   }
