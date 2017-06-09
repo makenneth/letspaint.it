@@ -24,4 +24,7 @@ export default keymirror({
 
   START_LOADING: null,
   STOP_LOADING: null,
+
+  CLEAR_ALERT_MESSAGE: null,
+  ALERT_MESSAGE: null,
 });

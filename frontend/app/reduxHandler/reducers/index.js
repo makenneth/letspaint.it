@@ -4,6 +4,7 @@ import canvas from './canvas';
 import statistics from './statistics';
 import auth from './auth';
 import loader from './loader';
+import alert from './alert';
 
 export default combineReducers({
   grid,
@@ -11,4 +12,5 @@ export default combineReducers({
   statistics,
   auth,
   loader,
+  alert,
 });
