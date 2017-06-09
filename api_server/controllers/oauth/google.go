@@ -22,11 +22,12 @@ func GetLoginURL(requestType, authType, state string) string {
   return oauthCredentials[authType][requestType].AuthCodeURL(state)
 }
 
-func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request) (int, error) {
+func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(int, error)) {
   cookie, err := r.Cookie("oauth-tok")
   log.Println(requestType)
   if _, ok := oauthCredentials["google"]; !ok {
-    return 404, errors.New("OAuth Type not supported")
+    next(404, errors.New("OAuth Type not supported"))
+    return
   }
   if err == nil && cookie.String() != "" {
     if r.URL.Query().Get("state") == cookie.Value {
@@ -55,17 +56,20 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
             sessionToken, err = user.Save()
             if err != nil {
               log.Println(err)
-              return 404, errors.New("Unable to save user")
+              next(404, errors.New("Unable to save user"))
+              return
             }
           } else {
             user, err = models.FindByOAuthId(data.ServiceId)
             if err != nil {
-              return 404, errors.New("User Not Found")
+              next(404, errors.New("User Not Found"))
+              return
             }
             sessionToken, err = user.ResetSessionToken()
             if err != nil {
               log.Println("Unable reset session token error")
-              return 500, errors.New("Internal server error")
+              next(500, errors.New("Internal server error"))
+              return
             }
           }
 
@@ -73,11 +77,10 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
           log.Println(string(userJson[:]))
           cookieJar.SetSessionToken(w, sessionToken)
           http.Redirect(w, r, "/auth/success", 302)
-          return 0, nil
         }
       }
     }
   }
 
-  return 403, errors.New("Invalid token")
+  next(403, errors.New("Invalid token"))
 }

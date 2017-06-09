@@ -93,11 +93,11 @@ const html = `
   </html>
 `;
 
-func templateHandler(w http.ResponseWriter, r *http.Request) (int, error) {
+func templateHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   fmt.Fprint(w, html)
 
-  return 0, nil
+  next(0, nil)
 }
 
 func errorResponse(w http.ResponseWriter, code int, message error) {
@@ -110,28 +110,22 @@ func errorResponse(w http.ResponseWriter, code int, message error) {
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
   w.Header().Set("Content-Type", "application/json")
-  var (
-    code int
-    msg error
-  )
+  callback := func (code int, msg error) {
+    errorResponse(w, code, msg)
+  }
   switch r.URL.Path {
   case "/oauth/google/signup":
-    code, msg = oauth.GoogleOAuthHandler("signup", w, r)
+    oauth.GoogleOAuthHandler("signup", w, r, callback)
   case "/oauth/google/login":
-    code, msg = oauth.GoogleOAuthHandler("login", w, r)
+    oauth.GoogleOAuthHandler("login", w, r, callback)
   case "/oauth/login":
-    code, msg = oauth.LogInHandler(w, r)
+    oauth.LogInHandler(w, r, callback)
   case "/oauth/signup":
-    code, msg = oauth.SignUpHandler(w, r)
+    oauth.SignUpHandler(w, r, callback)
   case "/user":
-    code, msg = users.GetProfileInfo(w, r)
+    users.GetProfileInfo(w, r, callback)
   default:
-    code, msg = templateHandler(w, r)
-  }
-
-  if code != 0 {
-    log.Println(msg)
-    errorResponse(w, code, msg)
+    templateHandler(w, r, callback)
   }
 }
 

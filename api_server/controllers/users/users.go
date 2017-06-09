@@ -9,30 +9,32 @@ import (
   "github.com/makenneth/letspaint/api_server/utils/cookieJar"
 )
 
-func GetProfileInfo(w http.ResponseWriter, r *http.Request) (int, error) {
+func GetProfileInfo(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   if r.Method != "GET" {
-    return 404, errors.New("Method not supported")
+    next(404, errors.New("Method not supported"))
+    return
   }
 
   token, err := cookieJar.GetSessionToken(r)
   if err != nil {
-    return 403, errors.New("Token not found.")
+    next(403, errors.New("Token not found."))
+    return
   }
   u, err := models.FindBySessionToken(token)
   if err != nil {
     cookieJar.SetSessionToken(w, "")
-    return 404, errors.New("User Not Found. Session may have expired.")
+    next(404, errors.New("User Not Found. Session may have expired."))
+    return
   }
   sessionToken, err := u.ResetSessionToken()
   if err != nil {
-    return 500, errors.New("Database error.")
+    next(500, errors.New("Database error."))
+    return
   }
   cookieJar.SetSessionToken(w, sessionToken)
   data, err := json.Marshal(u)
   w.WriteHeader(200)
   w.Write(data)
-
-  return 0, nil
 }
 
 

@@ -27,10 +27,11 @@ func Initialize(config map[string]*OAuthCredential) {
   oauthCredentials["google"]["signup"] = googleConfig("signup", config["google"])
 }
 
-func LogInHandler(w http.ResponseWriter, r *http.Request) (int, error) {
+func LogInHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   oauthType := r.URL.Query().Get("type")
   if _, ok := oauthCredentials[oauthType]; !ok {
-    return 404, errors.New("Type not supported")
+    next(404, errors.New("Type not supported"))
+    return
   }
 
   tok, _ := token.GenerateRandomToken(32)
@@ -46,13 +47,13 @@ func LogInHandler(w http.ResponseWriter, r *http.Request) (int, error) {
   url := map[string]string{"url": GetLoginURL("login", oauthType, tok)}
   data, _ := json.Marshal(url)
   w.Write(data)
-  return 0, nil
 }
 
-func SignUpHandler(w http.ResponseWriter, r *http.Request) (int, error) {
+func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   oauthType := r.URL.Query().Get("type")
   if _, ok := oauthCredentials[oauthType]; !ok {
-    return 404, errors.New("Type not supported")
+    next(404, errors.New("Type not supported"))
+    return
   }
 
   tok, _ := token.GenerateRandomToken(32)
@@ -68,7 +69,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) (int, error) {
   url := map[string]string{"url": GetLoginURL("signup", oauthType, tok)}
   data, _ := json.Marshal(url)
   w.Write(data)
-  return 0, nil
 }
 
 func googleConfig(requestType string, cred *OAuthCredential) *oauth2.Config {
