@@ -1,5 +1,6 @@
 import React from 'react';
 import { Application, LogInSuccess, Auth, Main } from 'components';
+import { loadAuth } from 'actions';
 import { Route, Router, browserHistory, IndexRoute } from 'react-router';
 import { Provider } from 'react-redux';
 
@@ -7,8 +8,8 @@ export default function getRoutes(store) {
   const ensureLogin = function(bool, nextState, replace, callback) {
     function checkAuth() {
       const { auth } = store.getState();
-      if ((auth.id && auth.username) === bool) {
-        replace(bool ? '/login' : '/paint');
+      if (!!auth.info !== bool) {
+        replace(bool ? '/login' : '/');
       }
 
       callback();
@@ -17,10 +18,7 @@ export default function getRoutes(store) {
     if (auth.isLoaded) {
       checkAuth();
     } else {
-      dispatch(loadAuth()).then(
-        checkAuth,
-        () => replace(bool ? '/login' : '/paint')
-      );
+      store.dispatch(loadAuth()).then(checkAuth);
     }
   };
 

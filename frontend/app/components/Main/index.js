@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Canvas from 'components/Canvas';
+import Statistics from 'components/Statistics';
 import { Spinner } from '_common';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from 'constants';
 import { adjustCanvasScale, pickColor } from 'actions';
@@ -94,57 +95,61 @@ export default class Main extends Component {
     const usernameAtPixel = usernames[(posY * 500) + posX];
     const occupiedBy = (!usernameAtPixel && 'None') || (usernameAtPixel === username && 'You') ||
       usernameAtPixel;
-    console.log('main');
+
     return (
-      <div className="main-container">
-        <div className="canvas-container">
-          <canvas
-            ref={(node) => { this.canvas = node; }}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-          />
-          {top !== null && left !== null && showDetail &&
-            <div
-              className="hover-effect"
-              style={{
-                top: `${top + 0.5}px`,
-                left: `${left + 0.5}px`,
-                width: `${scale}px`,
-                height: `${scale}px`,
-              }}
-            >
-              <div className="tooltip">
-                <div className="coord">
-                  ({posX + 1}, {posY + 1})
-                </div>
-                <div className="username">
-                  By: {occupiedBy}
+      <div className="layout">
+        <div className="main-container">
+          <div className="canvas-container">
+            <canvas
+              ref={(node) => { this.canvas = node; }}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+            />
+            {top !== null && left !== null && showDetail &&
+              <div
+                className="hover-effect"
+                style={{
+                  top: `${top + 0.5}px`,
+                  left: `${left + 0.5}px`,
+                  width: `${scale}px`,
+                  height: `${scale}px`,
+                }}
+              >
+                <div className="tooltip">
+                  <div className="coord">
+                    ({posX + 1}, {posY + 1})
+                  </div>
+                  <div className="username">
+                    By: {occupiedBy}
+                  </div>
                 </div>
               </div>
+            }
+            <Spinner isLoading={isLoading} />
+          </div>
+          <div className="user-controls">
+            <ColorPicker
+              pickColor={this.props.pickColor}
+              pickedColor={pickedColor}
+            />
+            <i className="material-icons" onClick={this.saveImage}>save</i>
+            <div className="zoom-control">
+              <i
+                className="material-icons"
+                onClick={this.increaseScale}
+              >
+                zoom_in
+              </i>
+              <i
+                className="material-icons"
+                onClick={this.decreaseScale}
+              >
+                zoom_out
+              </i>
             </div>
-          }
-          <Spinner isLoading={isLoading} />
-        </div>
-        <div className="user-controls">
-          <ColorPicker
-            pickColor={this.props.pickColor}
-            pickedColor={pickedColor}
-          />
-          <div className="zoom-control">
-            <i
-              className="material-icons"
-              onClick={this.increaseScale}
-            >
-              zoom_in
-            </i>
-            <i
-              className="material-icons"
-              onClick={this.decreaseScale}
-            >
-              zoom_out
-            </i>
           </div>
         </div>
+        <Statistics />
       </div>
     );
   }

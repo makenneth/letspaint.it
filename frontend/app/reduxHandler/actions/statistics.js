@@ -12,7 +12,7 @@ export const updateStatistics = (username) => {
         } else {
           return user;
         }
-      }
+      });
 
       const newRanking = updated.sort((a, b) => b.count - a.count);
       dispatch(rankingUpdate(newRanking));

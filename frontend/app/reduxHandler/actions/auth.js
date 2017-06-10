@@ -3,19 +3,26 @@ import request from 'utils/request';
 import { browserHistory } from 'react-router';
 import startWebsocket from 'middleware/socketHandler';
 import store from 'reduxHandler/store';
-import { setUserInfo } from './paint';
 import { startLoading, stopLoading } from './loader';
 import { alertSuccessMessage, alertErrorMessage } from './alert';
 
-export function checkAuth() {
-  return (dispatch) => {
-    // first check if token in cookie
-    // if not, reject
-    // if yes, then send a request to getUserInfo
-    // which will return the current info if logged in
-
-    return dispatch(getUserInfo());
-  };
+export function loadAuth() {
+  return dispatch => (
+    dispatch(getUserInfo())
+      .then(res => {
+        const { user } = res.data;
+        const websocket = startWebsocket(store);
+        websocket.onopen = function() {
+          dispatch(setUserInfo(user));
+        };
+        dispatch(alertSuccessMessage('Logged in successfully'));
+        dispatch(getUserInfoSuccess(user));
+        return Promise.resolve(true);
+      }, (err) => {
+        dispatch(getUserInfoFailure(err));
+        return Promise.resolve(false);
+      })
+  );
 }
 
 export function logIn(type) {
@@ -52,20 +59,42 @@ export function signUp() {
       type: 'GET',
       credentials: 'include',
       query: { type: 'google' },
-    }).then((res) => {
-      const newWindow = window.open(res.url, 'Sign Up with letspaint');
-      const int = setInterval(checkIfWindowCloses, 500);
-      function checkIfWindowCloses() {
-        if (newWindow.closed) {
-          clearInterval(int);
-          if (document.cookie.oauth_error) {
-            dispatch(alertErrorMessage(document.cookie.oauth_error));
-          } else {
-            dispatch(getUserInfo());
+    }).then(
+      res => (
+        new Promise((resolve, reject) => {
+          const newWindow = window.open(res.url, 'Sign Up with letspaint');
+          const int = setInterval(checkIfWindowCloses, 500);
+          function checkIfWindowCloses() {
+            if (newWindow.closed) {
+              clearInterval(int);
+              if (document.cookie.oauth_error) {
+                dispatch(alertErrorMessage(document.cookie.oauth_error));
+                return reject(document.cookie.oauth_error);
+              } else {
+                return resolve(true);
+              }
+            }
           }
-        }
-      }
-    }).catch((err) => {
+        })
+      ),
+      err => dispatch(authError(err))
+    )
+    .then(() => (
+      dispatch(getUserInfo())
+        .then(res => {
+          const info = res.info;
+          startWebsocket(store);
+          // instead should send token to websocket ??
+          dispatch(setUserInfo(info));
+          dispatch(alertSuccessMessage('Logged in successfully'));
+          dispatch(getUserInfoSuccess(info));
+          browserHistory.push('/');
+        }, err => {
+          dispatch(getUserInfoFailure(err));
+          dispatch(alertErrorMessage(err));
+        })
+     ))
+    .catch((err) => {
       dispatch(authError(err));
       console.warn(err);
     });
@@ -97,21 +126,6 @@ export function getUserInfo() {
     return request('/api/user', {
       type: 'GET',
       credentials: 'include',
-    }).then(
-      res => {
-        const info = res.info;
-        startWebsocket(store);
-        // instead should send token to websocket ??
-        dispatch(setUserInfo(info));
-        dispatch(alertSuccessMessage('Logged in successfully'));
-        dispatch(getUserInfoSuccess(info));
-      },
-      err => {
-        dispatch(getUserInfoFailure(err));
-        dispatch(alertErrorMessage(err));
-      }
-    ).catch(err => {
-      console.warn(err);
     });
   };
 }
@@ -136,9 +150,9 @@ function getUserInfoFailure(err) {
   };
 }
 
-export function setUserInfo(info) {
+export function setUserInfo(user) {
   return {
     type: ActionTypes.SET_USER_INFO,
-    info,
+    user,
   };
 }

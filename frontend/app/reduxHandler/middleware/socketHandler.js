@@ -16,7 +16,7 @@ export const socketMiddleware = (store) => next => action => {
     case ActionTypes.SET_USER_INFO:
       socket.send(JSON.stringify({
         type: 'SET_USER_INFO',
-        data: action.data,
+        data: action.user,
       }));
       break
     default:
@@ -60,4 +60,6 @@ export default function startWebSocket({ getState, dispatch }) {
   socket.onerror = (err) => {
     console.warn(err);
   }
+
+  return socket;
 }

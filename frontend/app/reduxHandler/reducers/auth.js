@@ -38,6 +38,7 @@ export default function Auth(state = initialState, action) {
       return {
         ...state,
         isLoaded: true,
+        isLoading: false,
         info: action.info,
       };
 

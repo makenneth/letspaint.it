@@ -57,7 +57,7 @@ export default class Canvas {
     tempCanvas.width = IMAGE_WIDTH;
     tempCanvas.height = IMAGE_HEIGHT;
     const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.putImageData(this.saveImageData(2, 1000, 1000), 0, 0);
+    tempCtx.putImageData(this.getImageData(2), 0, 0);
     return tempCanvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
   }
 
@@ -189,17 +189,20 @@ export default class Canvas {
 
   saveImageData(scale, width, height) {
     const data = this.currentValue;
+    // width 500px vs height 500px
+    // width * height * 4  500px * 500px * 4
+    //
     const newImageData = new Uint8ClampedArray(width * height * 4);
     const radius = (width / scale) / 2;
 
-    for (let row = 0; row < CANVAS_WIDTH; row++) {
+    for (let row = 0; row < canvasWidth; row++) {
       const rowStartIdx = row * IMAGE_WIDTH * 4 * scale;
       for (let col = 0; col < IMAGE_WIDTH * 4; col += 4) {
         const current = rowStartIdx + col;
-        const startCanvasIdx = (col * scale) + (row * 4 * scale * CANVAS_WIDTH);
+        const startCanvasIdx = (col * scale) + (row * 4 * scale * canvasWidth);
 
         for (let j = 0; j < scale; j++) {
-          const k = startCanvasIdx + (CANVAS_WIDTH * 4 * j * scale);
+          const k = startCanvasIdx + (canvasWidth * 4 * j * scale);
           for (let n = 0, offset = 0; n < scale; n++, offset += 4) {
             newImageData[k + offset] = data[current];
             newImageData[k + offset + 1] = data[current + 1];
