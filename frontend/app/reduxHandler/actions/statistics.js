@@ -3,8 +3,7 @@ import { rankingUpdate } from './websocket';
 export const updateStatistics = (username) => {
   return (dispatch, getState) => {
     const { ranking } = getState().statistics;
-    const updateIndex = ranking.findIndex(u => u.username);
-
+    const updateIndex = ranking.findIndex(u => u.username === username);
     if (updateIndex > -1) {
       const updated = ranking.map((user, i) => {
         if (i === updateIndex) {
@@ -15,7 +14,7 @@ export const updateStatistics = (username) => {
       });
 
       const newRanking = updated.sort((a, b) => b.count - a.count);
-      dispatch(rankingUpdate(newRanking));
+      dispatch(rankingUpdate({ ranking: newRanking }));
     }
   };
 }
