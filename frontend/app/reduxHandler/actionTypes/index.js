@@ -16,6 +16,7 @@ export default keymirror({
   GET_USER_INFO_REQUEST: null,
   GET_USER_INFO_SUCCESS: null,
   GET_USER_INFO_FAILURE: null,
+  SET_USER_INFO: null,
 
   AUTH_SUCCESS: null,
   AUTH_ERROR: null,

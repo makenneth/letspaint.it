@@ -7,7 +7,6 @@ import (
   "golang.org/x/net/websocket"
   "log"
   "time"
-  "strconv"
   "sync"
 )
 
@@ -27,13 +26,14 @@ type RankingStats struct {
 }
 
 type User struct {
-  Id string `json:"id"`
+  Id int `json:"id"`
   Username string `json:"username"`
 }
 
 type Message struct {
   MessageType string `json:"type"`
   Data json.RawMessage `json:"data"`
+  Username string `json:"-"`
 }
 
 type Count struct {
@@ -124,8 +124,19 @@ func (self *Server) Listen() {
       case m := <-self.broadcast:
         switch m.MessageType {
         case "PAINT_INPUT_MADE":
-          go self.updateBoard(m)
-          go handler.Update(m)
+          var data *GridData
+          err := json.Unmarshal(m.Data, &data)
+          if err != nil {
+            log.Println("Unmarshal error", err)
+            break
+          }
+          data.Username = m.Username
+          log.Println("server data", data)
+          go self.updateBoard(data)
+          go handler.Update(data)
+
+          d, _ := json.Marshal(data)
+          m = &Message{MessageType: m.MessageType, Data: d}
         }
 
         for _, c := range self.clients {
@@ -137,7 +148,7 @@ func (self *Server) Listen() {
 
 func (self *Server) sendCountUpdate() {
   data, _ := json.Marshal(&Count{len(self.clients)})
-  self.broadcast <- &Message{"USER_COUNT_UPDATE", data}
+  self.broadcast <- &Message{MessageType: "USER_COUNT_UPDATE", Data: data}
 }
 
 func (self *Server) sendInitialState(c *Client) {
@@ -151,19 +162,13 @@ func (self *Server) sendInitialState(c *Client) {
   }
   state := &InitialState{&BoardData{colors, usernames}}
   data, _ := json.Marshal(state)
-  c.Write() <- &Message{"INITIAL_STATE", data}
+  c.Write() <- &Message{MessageType: "INITIAL_STATE", Data: data}
   state = &InitialState{&BoardData{self.colors, self.usernames}}
   data, _ = json.Marshal(state)
-  c.Write() <- &Message{"FULL_INITIAL_STATE", data}
+  c.Write() <- &Message{MessageType: "FULL_INITIAL_STATE", Data: data}
 }
 
-func (self *Server) updateBoard(msg *Message) {
-  // should also store timestamp
-  var data GridData
-  err := json.Unmarshal(msg.Data, &data)
-  if err != nil {
-    log.Println("json unmarshalling error")
-  }
+func (self *Server) updateBoard(data *GridData) {
   mutex.Lock()
   self.usernames[data.Pos] = data.Username
   self.colors[data.Pos] = data.Color
@@ -194,7 +199,7 @@ func (self *Server) updateRanking() {
       }
     }
     data, _ := json.Marshal(&Ranking{ranking})
-    self.broadcast <- &Message{"RANKING_UPDATE", data}
+    self.broadcast <- &Message{MessageType: "RANKING_UPDATE", Data: data}
     time.Sleep(10 * time.Second)
   }
 }

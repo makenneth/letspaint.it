@@ -39,13 +39,7 @@ func (self *RedisHandler) GetBoard() ([]int8, []string) {
   return colors, usernames
 }
 
-func (self *RedisHandler) Update(msg *Message) {
-  var data GridData
-  err := json.Unmarshal(msg.Data, &data)
-  if err != nil {
-    log.Println("json unmarshalling error")
-  }
-
+func (self *RedisHandler) Update(data *GridData) {
   key := "grid:" + strconv.Itoa(data.Pos)
   pointJson, err := json.Marshal(&RedisData{data.Color, data.Username})
   if err != nil {

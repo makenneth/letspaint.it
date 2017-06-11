@@ -37,7 +37,7 @@ export default function startWebSocket({ getState, dispatch }) {
         break;
       case 'PAINT_INPUT_MADE':
         dispatch(WebSocketActions.paintInputReceived(data));
-        dispatch(WebSocketActions.updateStatistics(data.username));
+        dispatch(updateStatistics(data.username));
         break;
       case 'INITIAL_STATE':
         dispatch(WebSocketActions.partialInitialStateUpdate(data));

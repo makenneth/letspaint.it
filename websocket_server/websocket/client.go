@@ -3,15 +3,16 @@ package websocket
 import (
   "log"
   "golang.org/x/net/websocket"
+  "encoding/json"
 )
 
 type Client struct {
   ws *websocket.Conn
   server *Server
   done chan bool
+  send chan *Message
   Id int
   Username string
-  send chan *Message
 }
 
 func (self *Client) Write() chan<- *Message {
@@ -22,7 +23,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
   done := make(chan bool)
   send := make(chan *Message)
 
-  return &Client{ws, server, done, "abc", send}
+  return &Client{ws: ws, server: server, done: done, send: send}
 }
 
 func (self *Client) Listen() {
@@ -67,7 +68,7 @@ func (self *Client) ListenRead() {
         self.done <- true
         break
       } else {
-        self.server.Broadcast() <- &msg
+        self.HandleMessage(&msg)
       }
     }
   }
@@ -76,22 +77,25 @@ func (self *Client) ListenRead() {
 func (self *Client) HandleMessage(msg *Message) {
   switch(msg.MessageType) {
   case "PAINT_INPUT_MADE":
-    self.server.Broadcast() <- &msg
+    msg.Username = self.Username
+    self.server.Broadcast() <- msg
     break
   case "SET_USER_INFO":
+    log.Println(self.Username)
     if self.Username != "" {
       log.Println("Username is being changed by user id", self.Id)
       break
     }
-    var u *User;
+    var u *User
     _ = json.Unmarshal(msg.Data, &u)
     // probably check info across server
     // one way to do this is to flip a coin...1/7 chance when a request is made
-    // we would check the token
+    log.Println(u.Username)
+    log.Println(u.Id)
     self.Username = u.Username
     self.Id = u.Id
     data, _ := json.Marshal(true)
-    self.send <- &Message{"USER_INFO_SET", data}
+    self.send <- &Message{MessageType: "USER_INFO_SET", Data: data}
     break
   default:
     log.Println("Unknown message type received", msg.MessageType)
