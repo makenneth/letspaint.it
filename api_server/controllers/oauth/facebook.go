@@ -11,17 +11,16 @@ import (
   "github.com/makenneth/letspaint/api_server/utils/cookieJar"
 )
 
-type GoogleOAuthData struct {
-  ServiceId string `json:"sub"`
-  Verified  bool `json:"email_verified"`
+type FacebookOAuthData struct {
+  ServiceId string `json:"id"`
   Name string `json:"name"`
   Email string `json:"email"`
 }
 
-func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(int, error)) {
+func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(int, error)) {
   cookie, err := r.Cookie("oauth-tok")
-  log.Println(requestType)
-  if _, ok := oauthCredentials["google"]; !ok {
+  log.Println("cook1", cookie)
+  if _, ok := oauthCredentials["facebook"]; !ok {
     next(404, errors.New("OAuth Type not supported"))
     return
   }
@@ -35,26 +34,26 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
     return
   }
 
-  tok, err := oauthCredentials["google"][requestType].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
+  tok, err := oauthCredentials["facebook"][requestType].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
   if err != nil {
     next(403, errors.New("Failed to authenticate."))
     return
   }
 
-  client := oauthCredentials["google"][requestType].Client(oauth2.NoContext, tok)
-  resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+  client := oauthCredentials["facebook"][requestType].Client(oauth2.NoContext, tok)
+  resp, err := client.Get("https://graph.facebook.com/me?fields=id,name,email")
+  if err != nil {
+    next(403, errors.New("Failed to authenticate."))
+    return
+  }
+
   defer resp.Body.Close()
-  if err != nil {
-    next(403, errors.New("Failed to authenticate."))
-    return
-  }
-
   responseData, _ := ioutil.ReadAll(resp.Body)
   log.Println(string(responseData[:]))
 
-  var data *GoogleOAuthData
+  var data *FacebookOAuthData
   err = json.Unmarshal(responseData, &data)
-
+  log.Println("data", data)
   var (
     sessionToken string
     user *models.User
