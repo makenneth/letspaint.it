@@ -49,11 +49,14 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
 
   defer resp.Body.Close()
   responseData, _ := ioutil.ReadAll(resp.Body)
-  log.Println(string(responseData[:]))
 
-  var data *FacebookOAuthData
+  var (
+    data *FacebookOAuthData
+    registered bool
+  )
   err = json.Unmarshal(responseData, &data)
   log.Println("data", data)
+
   var (
     sessionToken string
     user *models.User
@@ -61,12 +64,17 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
   if requestType == "signup" {
     user = &models.User{Name: data.Name, ServiceId: data.ServiceId, Email: data.Email}
     sessionToken, err = user.Save()
-    if err != nil {
+
+    if err.Error() == "User has already been registered" {
+      registered = true
+    } else if err != nil {
       log.Println(err)
       next(404, errors.New("Unable to save user"))
       return
     }
-  } else {
+  }
+
+  if requestType == "login" || registered {
     user, err = models.FindByOAuthId(data.ServiceId)
     if err != nil {
       next(404, errors.New("User Not Found"))
