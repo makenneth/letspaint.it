@@ -1,0 +1,30 @@
+.alert-container {
+  position: fixed;
+  font-size: 15px;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 3px;
+  width: auto;
+  min-width: 250px;
+  cursor: pointer;
+  opacity: 0.9;
+
+  &.success {
+    background-color: #4b974c;
+    color: white;
+
+    &:hover {
+      background-color: rgba(#4b974c, 0.75);
+    }
+  }
+
+  &.error {
+    background-color: #c5271d;
+    color: white;
+
+    &:hover {
+      background-color: rgba(#c5271d, 0.75);
+    }
+  }
+}

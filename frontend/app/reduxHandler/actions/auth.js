@@ -15,7 +15,6 @@ export function loadAuth() {
         websocket.onopen = function() {
           dispatch(setUserInfo(user));
         };
-        dispatch(alertSuccessMessage('Logged in successfully'));
         dispatch(getUserInfoSuccess(user));
         return Promise.resolve(true);
       }, (err) => {
@@ -31,7 +30,7 @@ export function logIn(type) {
     return request('/oauth/login', {
       type: 'GET',
       credentials: 'include',
-      query: { type: 'google' },
+      query: { type },
     }).then((res) => {
       const newWindow = window.open(res.url, 'Sign In to letspaint');
       const int = setInterval(checkIfWindowCloses, 500);
@@ -40,9 +39,22 @@ export function logIn(type) {
           clearInterval(int);
           if (document.cookie.oauth_error) {
             dispatch(alertErrorMessage(document.cookie.oauth_error));
-          } else {
-            dispatch(getUserInfo());
+            return Promise.resolve(false);
           }
+          dispatch(getUserInfo())
+            .then(res => {
+              const { user } = res.data;
+              const websocket = startWebsocket(store);
+              websocket.onopen = function() {
+                dispatch(setUserInfo(user));
+              };
+              dispatch(alertSuccessMessage('Logged in successfully'));
+              dispatch(getUserInfoSuccess(user));
+              browserHistory.push('/');
+            }, err => {
+              dispatch(getUserInfoFailure(err));
+              dispatch(alertErrorMessage(err));
+            });
         }
       }
     }).catch((err) => {
@@ -52,16 +64,17 @@ export function logIn(type) {
   };
 }
 
-export function signUp() {
+export function signUp(type) {
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/signup', {
       type: 'GET',
       credentials: 'include',
-      query: { type: 'google' },
+      query: { type },
     }).then(
       res => (
         new Promise((resolve, reject) => {
+          console.log('res', res);
           const newWindow = window.open(res.url, 'Sign Up with letspaint');
           const int = setInterval(checkIfWindowCloses, 500);
           function checkIfWindowCloses() {
@@ -82,12 +95,13 @@ export function signUp() {
     .then(() => (
       dispatch(getUserInfo())
         .then(res => {
-          const info = res.info;
-          startWebsocket(store);
-          // instead should send token to websocket ??
-          dispatch(setUserInfo(info));
+          const { user } = res.data;
+          const websocket = startWebsocket(store);
+          websocket.onopen = function() {
+            dispatch(setUserInfo(user));
+          };
           dispatch(alertSuccessMessage('Logged in successfully'));
-          dispatch(getUserInfoSuccess(info));
+          dispatch(getUserInfoSuccess(user));
           browserHistory.push('/');
         }, err => {
           dispatch(getUserInfoFailure(err));

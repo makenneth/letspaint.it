@@ -6,19 +6,19 @@ export function clearAlertMessage() {
   };
 }
 
-export function alertSuccessMessage(message) {
+export function alertSuccessMessage(alertMessage) {
   return {
     type: ActionTypes.ALERT_MESSAGE,
-    message,
-    messageType: 'success',
+    alertMessage,
+    alertType: 'success',
   };
 }
 
-export function alertErrorMessage(message) {
+export function alertErrorMessage(alertMessage) {
   return {
     type: ActionTypes.ALERT_MESSAGE,
-    message,
-    messageType: 'error',
+    alertMessage,
+    alertType: 'error',
   };
 }
 

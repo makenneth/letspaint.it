@@ -2,6 +2,7 @@ import React from 'react';
 import Main from 'components/Main';
 import Auth from 'components/Auth';
 import Statistics from 'components/Statistics';
+import Alert from './Alert';
 import { connect } from 'react-redux';
 import { Spinner } from '_common';
 
@@ -18,6 +19,7 @@ class Application extends React.PureComponent {
         <Spinner
           isLoading={this.props.auth.isLoading}
         />
+        <Alert />
       </div>
     );
   }
