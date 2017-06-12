@@ -105,7 +105,7 @@ export function signUp(type) {
           browserHistory.push('/');
         }, err => {
           dispatch(getUserInfoFailure(err));
-          dispatch(alertErrorMessage(err));
+          dispatch(alertErrorMessage(err.message));
         })
      ))
     .catch((err) => {

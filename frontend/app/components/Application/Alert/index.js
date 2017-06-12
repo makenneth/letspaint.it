@@ -16,6 +16,11 @@ export default class Alert extends Component {
     }
   }
 
+  handleAlertClear = () => {
+    if (this.to) clearTimeout(this.to);
+    this.props.clearAlertMessage()
+  }
+
   render() {
     const { alertMessage, alertType } = this.props;
     if (alertMessage === '') {
@@ -25,7 +30,7 @@ export default class Alert extends Component {
     return (
       <div
         className={`alert-container ${alertType}`}
-        onClick={() => this.props.clearAlertMessage()}
+        onClick={this.handleAlertClear}
       >
         {alertMessage}
       </div>

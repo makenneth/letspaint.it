@@ -35,26 +35,13 @@ function checkStatus(response) {
     return response;
   }
 
-  const error = new Error();
-  error.error_description = response.statusText;
-  error.code = response.status;
-
   return response.json()
     .then(json => {
-      if (json.error_description) {
-        // on valid json responses, there will be at least code and error_description
-        throw json;
-      }
       if (json.error) {
-        if (json.error.error_description) {
-          throw json.error;
-        } else if (json.error.message) {
-          error.error_description = json.error.message;
-        }
+        return Promise.reject(json.error);
       }
-      throw error;
-    }, () => {
-      throw error;
+
+      return Promise.reject(json);
     });
 }
 
