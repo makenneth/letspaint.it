@@ -1,14 +1,16 @@
 DROP INDEX token_index;
 DROP INDEX service_id_index;
+DROP INDEX username_index;
+DROP INDEX email_index;
 DROP INDEX user_id_index;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS oauth_tokens CASCADE;
-DROP TABLE IF EXISTS oauth_infos CASCADE;
 DROP TABLE IF EXISTS team_users CASCADE;
 DROP TABLE IF EXISTS teams CASCADE;
 
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
+  username VARCHAR(40),
   name VARCHAR(255) NOT NULL,
   email VARCHAR(320) NOT NULL,
   token VARCHAR(60) not null,
@@ -35,6 +37,7 @@ CREATE TABLE team_users (
 );
 
 CREATE INDEX token_index ON users (token);
+CREATE UNIQUE INDEX username_index ON users (username);
 CREATE UNIQUE INDEX service_id_index ON oauth_tokens (service_id);
 CREATE UNIQUE INDEX email_index ON users (email);
 CREATE INDEX user_id_index ON oauth_tokens (user_id);
