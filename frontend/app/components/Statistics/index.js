@@ -21,7 +21,6 @@ class Statistics extends Component {
             this.props.ranking.slice(0, 10).map(({ username, count }, i) => (
               <tr key={username}>
                 <td>{i + 1}</td>
-                <td><img alt="profile" src={`${ASSET_URL}/${username}`} /></td>
                 <td>{username}</td>
                 <td>{count}</td>
               </tr>
