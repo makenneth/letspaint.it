@@ -5,6 +5,7 @@ import statistics from './statistics';
 import auth from './auth';
 import loader from './loader';
 import alert from './alert';
+import username from './username';
 
 export default combineReducers({
   grid,
@@ -12,5 +13,6 @@ export default combineReducers({
   statistics,
   auth,
   loader,
+  username,
   alert,
 });

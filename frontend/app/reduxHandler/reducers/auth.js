@@ -44,6 +44,7 @@ export default function Auth(state = initialState, action) {
     case ActionTypes.SET_USERNAME_SUCCESS:
       return {
         ...state,
+        loaded: true,
         info: action.user,
       };
 

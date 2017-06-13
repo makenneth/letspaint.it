@@ -44,16 +44,20 @@ export function logIn(type) {
           dispatch(getUserInfo())
             .then(res => {
               const { user } = res.data;
-              const websocket = startWebsocket(store);
-              websocket.onopen = function() {
-                dispatch(setUserInfo(user));
-              };
               dispatch(alertSuccessMessage('Logged in successfully'));
               dispatch(getUserInfoSuccess(user));
-              browserHistory.push('/');
+              if (user && user.username) {
+                const websocket = startWebsocket(store);
+                websocket.onopen = function() {
+                  dispatch(setUserInfo(user));
+                };
+                browserHistory.push('/');
+              } else {
+                browserHistory.push('/profile/username');
+              }
             }, err => {
               dispatch(getUserInfoFailure(err));
-              dispatch(alertErrorMessage(err));
+              dispatch(alertErrorMessage(err.message));
             });
         }
       }
@@ -96,13 +100,9 @@ export function signUp(type) {
       dispatch(getUserInfo())
         .then(res => {
           const { user } = res.data;
-          const websocket = startWebsocket(store);
-          websocket.onopen = function() {
-            dispatch(setUserInfo(user));
-          };
           dispatch(alertSuccessMessage('Logged in successfully'));
           dispatch(getUserInfoSuccess(user));
-          browserHistory.push('/');
+          browserHistory.push('/profile/username');
         }, err => {
           dispatch(getUserInfoFailure(err));
           dispatch(alertErrorMessage(err.message));
@@ -119,7 +119,7 @@ export function logOut() {
   return (dispatch) => {
     dispatch(logOutRequest());
     return request('/api/logout', {
-      type: 'DELETE',
+      method: 'DELETE',
       credentials: 'include',
     }).then(
       () => {

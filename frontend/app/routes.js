@@ -27,11 +27,9 @@ export default function getRoutes(store) {
   const ensureUsernameNotSet = function(nextState, replace, callback) {
     function checkUsername() {
       const { auth } = store.getState();
-      if (auth.info && auth.info.username == "") {
-        replace('/profile/username');
-      } else if (auth.info) {
+      if (auth.info && auth.info.username !== "") {
         replace('/');
-      } else {
+      } else if (!auth.info) {
         replace('/login');
       }
 
@@ -57,7 +55,7 @@ export default function getRoutes(store) {
             <Route path="signup" component={Auth} />
           </Route>
           <Route onEnter={ensureUsernameNotSet}>
-            <Route path="/profile/username" component={UsernameSet}>
+            <Route path="/profile/username" component={UsernameSet} />
           </Route>
         </Route>
         <Route path="/auth/success" component={LogInSuccess} />

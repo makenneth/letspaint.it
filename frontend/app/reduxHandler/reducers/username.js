@@ -1,4 +1,4 @@
-import { ActionTypees } from 'actionTypes';
+import ActionTypes from 'actionTypes';
 
 const initialState = {
   isLoading: false,
@@ -47,5 +47,7 @@ export default function username(state = initialState, action) {
         isLoading: false,
         err: action.err,
       };
+    default:
+      return state;
   }
 }

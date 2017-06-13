@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { setUsername, isUsernameAvailable } from 'actions';
+
+import './styles.scss';
 
 @connect(({ username }) => ({ username }), { setUsername, isUsernameAvailable })
 export default class UsernameSet extends Component {
@@ -9,18 +12,21 @@ export default class UsernameSet extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.username.error &&
-      this.props.username.error !== nextProps.username.error
+    if (!this.props.username.isAvailable && nextProps.username.isAvailable) {
+      this.setState({ error: '' });
+    } else if (nextProps.username.err &&
+      this.props.username.err !== nextProps.username.err
     ) {
-      this.setState({ error: error.message });
+      this.setState({ error: nextProps.username.err.message });
     }
   }
 
   handleUsernameChange = (ev) => {
     const username = ev.target.value;
-    this.setState({ username }, () => {
+
+    this.setState({ username, error: null }, () => {
+      if (this.checkTO) clearTimeout(this.checkTO);
       if (username.length > 5) {
-        if (this.checkTO) clearTimeout(this.checkTO);
         this.checkTO = setTimeout(() => {
           this.props.isUsernameAvailable(username);
         }, 500);
@@ -30,7 +36,7 @@ export default class UsernameSet extends Component {
 
   handleSubmit = (ev) => {
     ev.preventDefault();
-    if (username.length > 5) {
+    if (this.state.username.length > 5) {
       this.props.setUsername(this.state.username);
     } else {
       this.setState({ error: 'Usernames must be at least five characters long.' });
@@ -38,13 +44,36 @@ export default class UsernameSet extends Component {
   }
 
   render() {
+    let inputClassName = 'username-input';
+    if (this.state.error) {
+      inputClassName += ' invalid';
+    } else if (this.state.error === '') {
+      inputClassName += ' valid';
+    }
+
     return (
-      <form onSubmit={this.handleSubmit}>
-        <input
-          type="text"
-          onChange={this.handleUsernameChange}
-        />
-      </form>
+      <div className="username-form-container">
+        <form onSubmit={this.handleSubmit} className="username-form">
+          <div className={inputClassName}>
+            <input
+              autoFocus
+              id="username"
+              type="text"
+              value={this.state.username}
+              placeholder="Pick a username"
+              onChange={this.handleUsernameChange}
+            />
+            <div className="error-message">{this.state.error}</div>
+            {this.state.error === '' && <i className="material-icons check">check_circle</i>}
+            {this.state.error && <i className="material-icons times">not_interested</i>}
+          </div>
+          <input
+            type="submit"
+            value="Continue"
+            className={this.state.error === '' ? '' : 'hide'}
+          />
+        </form>
+      </div>
     );
   }
 }

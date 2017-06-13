@@ -1,16 +1,26 @@
 import ActionTypes from 'actionTypes';
 import request from 'utils/request';
+import startWebsocket from 'middleware/socketHandler';
+import store from 'reduxHandler/store';
+import { setUserInfo } from './auth';
+import { browserHistory } from 'react-router';
 
 export function setUsername(username) {
   return (dispatch) => {
     dispatch(setUsernameRequest());
     return request('/api/username', {
-      type: 'POST',
+      method: 'POST',
+      credentials: 'include',
       query: {
         username,
       },
-    }).then((data) => {
+    }).then(({ data }) => {
       dispatch(setUsernameSuccess(data.user));
+      const websocket = startWebsocket(store);
+      websocket.onopen = function() {
+        dispatch(setUserInfo(data.user));
+      };
+      browserHistory.push('/');
     }).catch((err) => {
       dispatch(setUsernameFailure(err));
     })
@@ -41,12 +51,12 @@ export function isUsernameAvailable(username) {
   return (dispatch) => {
     dispatch(isUsernameAvailableRequest());
     return request('/api/username', {
-      type: 'GET',
+      method: 'GET',
       query: {
         username,
       },
-    }).then((data) => {
-      dispatch(isUsernameAvailableSuccess(data.bool));
+    }).then((res) => {
+      dispatch(isUsernameAvailableSuccess(res.data.isAvailable.available));
     }).catch((err) => {
       dispatch(isUsernameAvailableFailure(err));
     })
