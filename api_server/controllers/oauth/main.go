@@ -84,6 +84,10 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)
 }
 
 func LogOutHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
+  if r.Method != "DELETE" {
+    next(404, errors.New("Unknown method for the endpoint"))
+    return
+  }
   oldToken, err := cookieJar.GetSessionToken(r)
   cookieJar.SetSessionToken(w, "")
 

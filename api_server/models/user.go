@@ -15,7 +15,8 @@ var mutex sync.Mutex
 type User struct {
   Id int `json:"id"`
   ServiceId string `json:"-"`
-  Name string `json:"username"`
+  Username string `json:"username"`
+  Name string `json:"name"`
   Email string `json:"-"`
 }
 
@@ -151,4 +152,36 @@ func FindByOAuthId(serviceId string) (*User, error) {
     return nil, err
   }
   return &User{Id: id, Name: name}, nil
+}
+
+func SetUsername(sessionToken, username string) (*User, error) {
+  var (
+    id int
+    name string
+  )
+
+  err := connection.DB.QueryRow(`
+    UPDATE users SET username = $1
+    WHERE token = $2
+    returning id, name;
+  `, username, sessionToken).Scan(&id, &name)
+
+  if err != nil {
+    log.Printf("Update user with username %s failed", username)
+    return nil, err
+  } else {
+    return &User{Id: id, Name: name, Username: username}, nil
+  }
+}
+
+func IsUsernameAvailable(username string) bool {
+  var count int
+  err := connection.DB.QueryRow(`
+    SELECT COUNT(*) FROM users WHERE username = $1;
+  `, username).Scan(&count)
+  if err != nil {
+    log.Println("Query username error", err)
+    return false
+  }
+  return count == 0
 }

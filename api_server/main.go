@@ -127,6 +127,8 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
     oauth.LogOutHandler(w, r, callback)
   case "/api/user":
     users.GetProfileInfo(w, r, callback)
+  case "/api/username":
+    users.UsernameHandler(w, r, callback)
   default:
     templateHandler(w, r, callback)
   }
