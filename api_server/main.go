@@ -25,7 +25,7 @@ type Config struct {
 
 type ErrorMessage struct {
   Error struct {
-    Message error `json:"message"`
+    Message string `json:"message"`
   } `json:"error"`
 }
 
@@ -96,20 +96,17 @@ const html = `
 func templateHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   fmt.Fprint(w, html)
-
-  next(0, nil)
 }
 
 func errorResponse(w http.ResponseWriter, code int, message error) {
-  w.WriteHeader(code)
   err := &ErrorMessage{}
-  err.Error.Message = message
+  err.Error.Message = message.Error()
   res, _ := json.Marshal(err)
+  w.WriteHeader(code)
   w.Write(res)
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-  w.Header().Set("Content-Type", "application/json")
   callback := func (code int, msg error) {
     errorResponse(w, code, msg)
   }
@@ -118,11 +115,17 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
     oauth.GoogleOAuthHandler("signup", w, r, callback)
   case "/oauth/google/login":
     oauth.GoogleOAuthHandler("login", w, r, callback)
+  case "/oauth/facebook/signup":
+    oauth.FacebookOAuthHandler("signup", w, r, callback)
+  case "/oauth/facebook/login":
+    oauth.FacebookOAuthHandler("login", w, r, callback)
   case "/oauth/login":
     oauth.LogInHandler(w, r, callback)
   case "/oauth/signup":
     oauth.SignUpHandler(w, r, callback)
-  case "/user":
+  case "/api/logout":
+    oauth.LogOutHandler(w, r, callback)
+  case "/api/user":
     users.GetProfileInfo(w, r, callback)
   default:
     templateHandler(w, r, callback)

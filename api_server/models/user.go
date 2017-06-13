@@ -109,6 +109,7 @@ func FindBySessionToken(token string) (*User, error) {
   return &User{Id: id, Name: name}, nil
 }
 
+
 func (self *User) ResetSessionToken() (string, error) {
   tok, _ := token.GenerateRandomToken(32)
   _, err := connection.DB.Exec(`
@@ -116,6 +117,17 @@ func (self *User) ResetSessionToken() (string, error) {
   `, tok, self.Id)
 
   return tok, err
+}
+
+func ResetSessionTokenWithToken(oldToken string) error {
+  tok, _ := token.GenerateRandomToken(32)
+  _, err := connection.DB.Exec(`
+    UPDATE users SET token = $1 WHERE token = $2
+  `, tok, oldToken)
+  log.Println(`
+    UPDATE users SET token = $1 WHERE token = $2
+  `)
+  return err
 }
 
 func FindByOAuthId(serviceId string) (*User, error) {

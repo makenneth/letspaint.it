@@ -52,7 +52,10 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
   responseData, _ := ioutil.ReadAll(resp.Body)
   log.Println(string(responseData[:]))
 
-  var data *GoogleOAuthData
+  var (
+    data *GoogleOAuthData
+    registered bool
+  )
   err = json.Unmarshal(responseData, &data)
 
   var (
@@ -62,12 +65,17 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
   if requestType == "signup" {
     user = &models.User{Name: data.Name, ServiceId: data.ServiceId, Email: data.Email}
     sessionToken, err = user.Save()
-    if err != nil {
+
+    if err.Error() == "User has already been registered" {
+      registered = true
+    } else if err != nil {
       log.Println(err)
       next(404, errors.New("Unable to save user"))
       return
     }
-  } else {
+  }
+
+  if requestType == "login" || registered {
     user, err = models.FindByOAuthId(data.ServiceId)
     if err != nil {
       next(404, errors.New("User Not Found"))

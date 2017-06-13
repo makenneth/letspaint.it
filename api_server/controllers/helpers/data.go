@@ -2,7 +2,6 @@ package helpers
 
 import (
   "encoding/json"
-  "log"
   "reflect"
   "strings"
 )

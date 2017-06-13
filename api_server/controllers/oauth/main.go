@@ -7,9 +7,11 @@ import (
   "errors"
   "net/http"
   "encoding/json"
+  "github.com/makenneth/letspaint/api_server/utils/cookieJar"
   "golang.org/x/oauth2"
   "golang.org/x/oauth2/google"
   "golang.org/x/oauth2/facebook"
+  "github.com/makenneth/letspaint/api_server/models"
   "github.com/makenneth/letspaint/api_server/utils/token"
 )
 
@@ -78,6 +80,17 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)
   http.SetCookie(w, &cookie)
   url := map[string]string{"url": GetLoginURL("signup", oauthType, tok)}
   data, _ := json.Marshal(url)
+  w.Write(data)
+}
+
+func LogOutHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
+  oldToken, err := cookieJar.GetSessionToken(r)
+  cookieJar.SetSessionToken(w, "")
+
+  if err == nil {
+    _ = models.ResetSessionTokenWithToken(oldToken)
+  }
+  data, _ := json.Marshal(true)
   w.Write(data)
 }
 
