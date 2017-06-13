@@ -1,5 +1,5 @@
 import React from 'react';
-import { Application, LogInSuccess, Auth, Main } from 'components';
+import { Application, LogInSuccess, Auth, Main, UsernameSet } from 'components';
 import { loadAuth } from 'actions';
 import { Route, Router, browserHistory, IndexRoute } from 'react-router';
 import { Provider } from 'react-redux';
@@ -9,8 +9,9 @@ export default function getRoutes(store) {
     function checkAuth() {
       const { auth } = store.getState();
       if (!!auth.info !== bool) {
-        console.log(bool ? '/login' : '/');
         replace(bool ? '/login' : '/');
+      } else if (auth.info && auth.info.username == "") {
+        replace('/profile/username');
       }
 
       callback();
@@ -23,6 +24,26 @@ export default function getRoutes(store) {
     }
   };
 
+  const ensureUsernameNotSet = function(nextState, replace, callback) {
+    function checkUsername() {
+      const { auth } = store.getState();
+      if (auth.info && auth.info.username == "") {
+        replace('/profile/username');
+      } else if (auth.info) {
+        replace('/');
+      } else {
+        replace('/login');
+      }
+
+      callback();
+    }
+    const { auth } = store.getState();
+    if (auth.isLoaded) {
+      checkUsername();
+    } else {
+      store.dispatch(loadAuth()).then(checkUsername);
+    }
+  };
   return (
     <Provider store={store}>
       <Router history={browserHistory}>
@@ -34,6 +55,9 @@ export default function getRoutes(store) {
           <Route onEnter={ensureLogin.bind(null, false)}>
             <Route path="login" component={Auth} />
             <Route path="signup" component={Auth} />
+          </Route>
+          <Route onEnter={ensureUsernameNotSet}>
+            <Route path="/profile/username" component={UsernameSet}>
           </Route>
         </Route>
         <Route path="/auth/success" component={LogInSuccess} />

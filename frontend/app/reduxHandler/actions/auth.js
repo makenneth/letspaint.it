@@ -119,7 +119,7 @@ export function logOut() {
   return (dispatch) => {
     dispatch(logOutRequest());
     return request('/api/logout', {
-      type: 'GET',
+      type: 'DELETE',
       credentials: 'include',
     }).then(
       () => {
