@@ -31,6 +31,7 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
     next(403, errors.New("Invalid token."))
     return
   } else if r.URL.Query().Get("state") != cookie.Value {
+    log.Println("value mismatch")
     next(403, errors.New("Invalid access."))
     return
   }
@@ -54,8 +55,8 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
 
   var (
     data *GoogleOAuthData
-    registered bool
   )
+  registered := false
   err = json.Unmarshal(responseData, &data)
 
   var (
@@ -66,18 +67,20 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
     user = &models.User{Name: data.Name, ServiceId: data.ServiceId, Email: data.Email}
     sessionToken, err = user.Save()
 
-    if err.Error() == "User has already been registered" {
-      registered = true
-    } else if err != nil {
-      log.Println(err)
-      next(404, errors.New("Unable to save user"))
-      return
+    if err != nil {
+      if err.Error() == "User has already been registered" {
+        registered = true
+      } else {
+        next(404, errors.New("Unable to save user"))
+        return
+      }
     }
   }
 
   if requestType == "login" || registered {
     user, err = models.FindByOAuthId(data.ServiceId)
     if err != nil {
+      log.Println("user not found")
       next(404, errors.New("User Not Found"))
       return
     }

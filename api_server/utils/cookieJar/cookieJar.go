@@ -9,8 +9,9 @@ func SetSessionToken(w http.ResponseWriter, sessionToken string) {
   cookie := http.Cookie{
     Name: "session_token",
     Value: sessionToken,
-    Path: "/",
     HttpOnly: true,
+    Path: "/",
+    Domain: "127.0.0.1",
   }
   http.SetCookie(w, &cookie)
 }

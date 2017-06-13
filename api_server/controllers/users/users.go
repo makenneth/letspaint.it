@@ -11,7 +11,7 @@ import (
 )
 
 type IsAvailable struct {
-  Available bool `json:"avaialble"`
+  Available bool `json:"available"`
 }
 
 func GetProfileInfo(w http.ResponseWriter, r *http.Request, next func(int, error)) {
@@ -38,6 +38,7 @@ func GetProfileInfo(w http.ResponseWriter, r *http.Request, next func(int, error
 }
 
 func UsernameHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
+  log.Println("Username handler", r.Method)
   if r.Method == "GET" {
     username := r.URL.Query().Get("username")
     if len(username) < 5 {
@@ -61,7 +62,7 @@ func UsernameHandler(w http.ResponseWriter, r *http.Request, next func(int, erro
     }
     user, err := models.SetUsername(token, username)
     if err != nil {
-      next(422, errors.New("Username is not available"))
+      next(422, err)
       return
     }
     data := helpers.FormatData(user)

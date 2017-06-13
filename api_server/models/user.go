@@ -6,7 +6,6 @@ import (
   "errors"
   "fmt"
   "github.com/lib/pq"
-  "reflect"
   "github.com/makenneth/letspaint/api_server/utils/connection"
   "github.com/makenneth/letspaint/api_server/utils/token"
 )
@@ -29,9 +28,12 @@ func (self *User) Save() (string, error) {
     return token, errors.New("Failed to begin transaction")
   }
 
-  var id int64
+  var (
+    id int
+    userId int
+  )
   {
-    stmt, _ := tx.Prepare(`
+    stmt, err := tx.Prepare(`
       WITH s AS (
         SELECT id FROM users WHERE email = $2
       ), i AS (
@@ -46,31 +48,25 @@ func (self *User) Save() (string, error) {
       SELECT id FROM s;
     `)
     defer stmt.Close()
-
-    log.Println(stmt)
-    result, err := stmt.Exec(self.Name, self.Email, token)
+    err = stmt.QueryRow(self.Name, self.Email, token).Scan(&id)
     if err != nil {
       if err, ok := err.(*pq.Error); ok {
         fmt.Println("pq error:", err.Code.Name())
         tx.Rollback()
         return "", errors.New("Failed to save user")
       }
-    } else {
-      v := reflect.ValueOf(result)
-      id = v.Field(1).Elem().Int()
     }
   }
 
   {
     stmt, _ := tx.Prepare(`INSERT INTO
       oauth_tokens (service_id, user_id)
-      VALUES ($1, $2);`)
+      VALUES ($1, $2) returning id;`)
     defer stmt.Close()
-    log.Println(stmt)
-
-    _, err = stmt.Exec(self.ServiceId, id)
-
+    err = stmt.QueryRow(self.ServiceId, id).Scan(&userId)
+    log.Println("after exec", err)
     if err != nil {
+      log.Println("err before *pq.Error", err)
       if err, ok := err.(*pq.Error); ok {
         fmt.Println("pq error:", err.Code.Name())
         tx.Rollback()
@@ -81,11 +77,14 @@ func (self *User) Save() (string, error) {
           return "", errors.New("Failed to save auth token")
         }
       }
+    } else {
+      self.Id = userId
+      log.Println(self)
     }
   }
-
+  log.Println("before commit")
   tx.Commit()
-
+  log.Println("commited")
   return token, nil
 }
 
@@ -93,21 +92,21 @@ func FindBySessionToken(token string) (*User, error) {
   var (
     id int
     name string
+    username string
   )
   err := connection.DB.QueryRow(`
-    SELECT id, name from users
+    SELECT id, name, COALESCE(username, '') from users
     WHERE token = $1;
-  `, token).Scan(&id, &name)
-  log.Printf(`SELECT u.id, o.name from users AS u
-    INNER JOIN oauth_infos AS o
-    ON u.id = o.user_id
-    WHERE u.token = '%s';`, token)
+  `, token).Scan(&id, &name, &username)
+  log.Printf(`
+    SELECT id, name, COALESCE(username, '') from users
+    WHERE token = '%s';`, token)
   if err != nil {
     log.Println(err)
-    return nil, err
+    return nil, errors.New("User not found")
   }
   log.Println(id, name)
-  return &User{Id: id, Name: name}, nil
+  return &User{Id: id, Name: name, Username: username}, nil
 }
 
 
@@ -135,23 +134,24 @@ func FindByOAuthId(serviceId string) (*User, error) {
   var (
     id int
     name string
+    username string
   )
   err := connection.DB.QueryRow(`
-    SELECT u.id, u.name from users AS u
+    SELECT u.id, u.name, COALESCE(u.username, '') from users AS u
     INNER JOIN oauth_tokens AS ot
     ON ot.user_id = u.id
     WHERE ot.service_id = $1;
-  `, serviceId).Scan(&id, &name)
+  `, serviceId).Scan(&id, &name, &username)
 
-  fmt.Printf(`SELECT u.id, u.name from users AS u
+  fmt.Printf(`SELECT u.id, u.name, COALESCE(u.username, '')  from users AS u
     INNER JOIN oauth_tokens AS ot
     ON ot.user_id = u.id
     WHERE ot.service_id = $1;
   `, serviceId)
   if err != nil {
-    return nil, err
+    return nil, errors.New("User not found")
   }
-  return &User{Id: id, Name: name}, nil
+  return &User{Id: id, Name: name, Username: username}, nil
 }
 
 func SetUsername(sessionToken, username string) (*User, error) {
@@ -162,16 +162,26 @@ func SetUsername(sessionToken, username string) (*User, error) {
 
   err := connection.DB.QueryRow(`
     UPDATE users SET username = $1
-    WHERE token = $2
+    WHERE token = $2 AND COALESCE(username, '') = ''
     returning id, name;
   `, username, sessionToken).Scan(&id, &name)
 
   if err != nil {
-    log.Printf("Update user with username %s failed", username)
+    if err, ok := err.(*pq.Error); ok {
+      fmt.Println("pq error:", err.Code.Name())
+
+      if err.Code.Name() == "unique_violation" {
+        return nil, errors.New("Username has been taken.")
+      }
+    }
+
+    if err.Error() == "sql: no rows in result set" {
+      return nil, errors.New("Username can only be set once")
+    }
     return nil, err
-  } else {
-    return &User{Id: id, Name: name, Username: username}, nil
   }
+
+  return &User{Id: id, Name: name, Username: username}, nil
 }
 
 func IsUsernameAvailable(username string) bool {
