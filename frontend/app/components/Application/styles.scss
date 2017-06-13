@@ -137,3 +137,14 @@ button {
 .layout {
   display: flex;
 }
+
+.log-out-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #d9853f;
+  &:hover {
+    background-color: rgba(#d9853f, 0.75);
+  }
+}
+

@@ -115,6 +115,26 @@ export function signUp(type) {
   };
 }
 
+export function logOut() {
+  return (dispatch) => {
+    dispatch(logOutRequest());
+    return request('/api/logout', {
+      type: 'GET',
+      credentials: 'include',
+    }).then(
+      () => {
+        dispatch(alertSuccessMessage('Logged out successfully'));
+        dispatch(logOutSuccess());
+        browserHistory.push('/login');
+      },
+      () => {
+        dispatch(alertSuccessMessage('Logged out successfully'));
+        dispatch(logOutSuccess());
+        browserHistory.push('/login');
+      });
+  }
+}
+
 function authSuccess() {
   return {
     type: ActionTypes.AUTH_SUCCESS,
@@ -131,6 +151,18 @@ function authError(err) {
 function authRequest() {
   return {
     type: ActionTypes.AUTH_REQUEST,
+  };
+}
+
+function logOutRequest() {
+  return {
+    type: ActionTypes.LOG_OUT_REQUEST,
+  };
+}
+
+function logOutSuccess() {
+  return {
+    type: ActionTypes.LOG_OUT_SUCCESS,
   };
 }
 

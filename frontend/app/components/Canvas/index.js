@@ -23,9 +23,12 @@ export default class Canvas {
   unmount() {
     this.unsubscribe();
     clearInterval(this.int);
-    this.canvas.removeListener('mousedown', this.handleClick);
-    this.canvas.removeListener('mousemove', this.handleClick);
-    this.canvas.removeListener('mouseup', this.handleClick);
+    try {
+      this.canvas.removeListener('mousedown', this.handleClick);
+      this.canvas.removeListener('mousemove', this.handleClick);
+      this.canvas.removeListener('mouseup', this.handleClick);
+    } catch (e) {
+    }
   }
 
   select(state) {

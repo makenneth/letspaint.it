@@ -3,12 +3,14 @@
   font-size: 15px;
   top: 20px;
   right: 20px;
-  padding: 10px 25px;
+  padding: 13px 40px 13px 25px;
   border-radius: 3px;
   width: auto;
   min-width: 250px;
   cursor: pointer;
   opacity: 0.9;
+  visibility: visible;
+  transition: opacity 0.3s ease-in-out;
 
   &.success {
     background-color: #4b974c;
@@ -26,5 +28,10 @@
     &:hover {
       background-color: rgba(#c5271d, 0.75);
     }
+  }
+
+  &.hide {
+    opacity: 0;
+    visibility: hidden;
   }
 }

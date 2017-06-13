@@ -1,4 +1,4 @@
-export default function request(url, options = { }) {
+export default function request(url, options = {}) {
   let requestUrl = url;
   const headers = {
     'Content-Type': 'application/json',

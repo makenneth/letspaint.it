@@ -18,6 +18,8 @@ export default keymirror({
   GET_USER_INFO_FAILURE: null,
   SET_USER_INFO: null,
 
+  LOG_OUT_REQUEST: null,
+  LOG_OUT_SUCCESS: null,
   AUTH_SUCCESS: null,
   AUTH_ERROR: null,
   AUTH_REQUEST: null,

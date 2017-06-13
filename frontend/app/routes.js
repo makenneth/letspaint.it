@@ -9,6 +9,7 @@ export default function getRoutes(store) {
     function checkAuth() {
       const { auth } = store.getState();
       if (!!auth.info !== bool) {
+        console.log(bool ? '/login' : '/');
         replace(bool ? '/login' : '/');
       }
 
