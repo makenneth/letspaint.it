@@ -81,7 +81,6 @@ func (self *Client) HandleMessage(msg *Message) {
     self.server.Broadcast() <- msg
     break
   case "SET_USER_INFO":
-    log.Println(self.Username)
     if self.Username != "" {
       log.Println("Username is being changed by user id", self.Id)
       break
@@ -90,8 +89,6 @@ func (self *Client) HandleMessage(msg *Message) {
     _ = json.Unmarshal(msg.Data, &u)
     // probably check info across server
     // one way to do this is to flip a coin...1/7 chance when a request is made
-    log.Println(u.Username)
-    log.Println(u.Id)
     self.Username = u.Username
     self.Id = u.Id
     data, _ := json.Marshal(true)
