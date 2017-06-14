@@ -11,10 +11,10 @@ Users all over the world can all paint together. Each user is allowed to submit 
 - We will have Redis(no eviction) database to store the current state.
 
 ## Data
-- consists of username, color (64), pixel index, and timestamp.
+- consists of id, username, color (64), pixel index, and timestamp.
 
 # TODO
 - [ ] benchmark compressing data with lz77
-- [ ] Add ssl handling in reverse proxy server
-- [ ] Auth (OAuth)
+- [x] Add ssl handling in reverse proxy server
+- [x] Auth (OAuth)
 - [ ] Option to create team, and have team chat

@@ -12,6 +12,7 @@ import (
 
 var mutex sync.Mutex
 type RedisData struct {
+  Id int `json:"id"`
   Color int8 `json:"color"`
   Username string `json:"username"`
 }
