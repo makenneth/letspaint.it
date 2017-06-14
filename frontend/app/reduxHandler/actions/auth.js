@@ -1,6 +1,7 @@
 import ActionTypes from 'actionTypes';
 import request from 'utils/request';
 import { browserHistory } from 'react-router';
+import { getCookie } from 'utils/cookie'
 import startWebsocket from 'middleware/socketHandler';
 import store from 'reduxHandler/store';
 import { startLoading, stopLoading } from './loader';
@@ -37,28 +38,37 @@ export function logIn(type) {
       function checkIfWindowCloses() {
         if (newWindow.closed) {
           clearInterval(int);
-          if (document.cookie.oauth_error) {
-            dispatch(alertErrorMessage(document.cookie.oauth_error));
+          const error = getCookie('auth_error');
+          const success = getCookie('auth_success');
+          if (error) {
+            document.cookie = 'auth_error=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+            dispatch(getUserInfoFailure(error));
+            dispatch(alertErrorMessage(error));
             return Promise.resolve(false);
           }
-          dispatch(getUserInfo())
-            .then(res => {
-              const { user } = res.data;
-              dispatch(alertSuccessMessage('Logged in successfully'));
-              dispatch(getUserInfoSuccess(user));
-              if (user && user.username) {
-                const websocket = startWebsocket(store);
-                websocket.onopen = function() {
-                  dispatch(setUserInfo(user));
-                };
-                browserHistory.push('/');
-              } else {
-                browserHistory.push('/profile/username');
-              }
-            }, err => {
-              dispatch(getUserInfoFailure(err));
-              dispatch(alertErrorMessage(err.message));
-            });
+          if (success) {
+            document.cookie = 'auth_success=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+            dispatch(getUserInfo())
+              .then(res => {
+                const { user } = res.data;
+                dispatch(alertSuccessMessage('Logged in successfully'));
+                dispatch(getUserInfoSuccess(user));
+                if (user && user.username) {
+                  const websocket = startWebsocket(store);
+                  websocket.onopen = function() {
+                    dispatch(setUserInfo(user));
+                  };
+                  browserHistory.push('/');
+                } else {
+                  browserHistory.push('/profile/username');
+                }
+              }, err => {
+                dispatch(getUserInfoFailure(err));
+                dispatch(alertErrorMessage(err.message));
+              });
+          } else {
+            dispatch(getUserInfoFailure(null));
+          }
         }
       }
     }).catch((err) => {
@@ -78,17 +88,31 @@ export function signUp(type) {
     }).then(
       res => (
         new Promise((resolve, reject) => {
-          console.log('res', res);
           const newWindow = window.open(res.url, 'Sign Up with letspaint');
           const int = setInterval(checkIfWindowCloses, 500);
           function checkIfWindowCloses() {
             if (newWindow.closed) {
               clearInterval(int);
-              if (document.cookie.oauth_error) {
-                dispatch(alertErrorMessage(document.cookie.oauth_error));
-                return reject(document.cookie.oauth_error);
+              const error = getCookie('oauth_error');
+              const success = getCookie('auth_success');
+              if (error) {
+                document.cookie = 'auth_error=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+                dispatch(alertErrorMessage(error));
+                return reject(error);
+              } else if (success) {
+                document.cookie = 'auth_success=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+                return dispatch(getUserInfo())
+                  .then(res => {
+                    const { user } = res.data;
+                    dispatch(alertSuccessMessage('Logged in successfully'));
+                    dispatch(getUserInfoSuccess(user));
+                    browserHistory.push('/profile/username');
+                  }, err => {
+                    dispatch(getUserInfoFailure(err));
+                    dispatch(alertErrorMessage(err.message));
+                  })
               } else {
-                return resolve(true);
+                dispatch(getUserInfoFailure(null));
               }
             }
           }
@@ -96,22 +120,6 @@ export function signUp(type) {
       ),
       err => dispatch(authError(err))
     )
-    .then(() => (
-      dispatch(getUserInfo())
-        .then(res => {
-          const { user } = res.data;
-          dispatch(alertSuccessMessage('Logged in successfully'));
-          dispatch(getUserInfoSuccess(user));
-          browserHistory.push('/profile/username');
-        }, err => {
-          dispatch(getUserInfoFailure(err));
-          dispatch(alertErrorMessage(err.message));
-        })
-     ))
-    .catch((err) => {
-      dispatch(authError(err));
-      console.warn(err);
-    });
   };
 }
 
