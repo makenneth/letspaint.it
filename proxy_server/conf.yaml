@@ -9,6 +9,7 @@ server:
       scheme: "https://"
       pattern: "^/$"
       target: "https://127.0.0.1:3000"
+  default: "./index.html"
 static:
   file_types: "(js|css)"
   server: "https://xxxx.com"

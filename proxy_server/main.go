@@ -22,6 +22,7 @@ type UpstreamServer struct {
 type HTTPServer struct {
   Upstreams []*UpstreamServer `yaml:"upstreams"`
   Port int `yaml:"port"`
+  Default string `yaml:"default"`
 }
 
 type Config struct {

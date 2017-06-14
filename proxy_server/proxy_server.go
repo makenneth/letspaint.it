@@ -2,8 +2,10 @@ package main
 
 import (
   "log"
+  "fmt"
   "net/http"
   "net/url"
+  "io/ioutil"
   "net/http/httputil"
   "github.com/yhat/wsutil"
   "regexp"
@@ -11,6 +13,8 @@ import (
   "crypto/tls"
   "golang.org/x/crypto/acme/autocert"
 )
+
+var html string
 
 type Host struct {
   description string
@@ -73,6 +77,11 @@ func NewProxyServer(config *Config) *ProxyServer {
   return &ProxyServer{config: config, hosts: hosts, staticFileTypes: reg}
 }
 
+func serveTemplate(w http.ResponseWriter, req *http.Request) {
+  w.Header().Set("Content-Type", "text/html; charset=utf-8")
+  fmt.Fprint(w, html)
+}
+
 func redirect(w http.ResponseWriter, req *http.Request) {
   target := "https://" + req.Host + req.URL.Path
   if len(req.URL.RawQuery) > 0 {
@@ -92,6 +101,14 @@ func (self *ProxyServer) Listen() {
     TLSConfig: &tls.Config{
       GetCertificate: m.GetCertificate,
     },
+  }
+  if self.config.Default != "" {
+    data, err := ioutil.ReadFile(self.config.Default)
+    if err != nil {
+      log.Fatal(err)
+    }
+
+    html = string(data)
   }
   http.HandleFunc("/", self.handleConnection)
   if self.config.Server == (&HTTPServer{}) || self.config.Server.Port == 0 {
@@ -124,7 +141,9 @@ func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request
         }
       }
     }
-    if !matched {
+    if self.config.Default != "" {
+      serveTemplate(w, r)
+    } else {
       log.Println("url pattern not matched")
     }
   }
