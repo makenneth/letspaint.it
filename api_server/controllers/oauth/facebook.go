@@ -17,33 +17,33 @@ type FacebookOAuthData struct {
   Email string `json:"email"`
 }
 
-func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(int, error)) {
+func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(error)) {
   cookie, err := r.Cookie("oauth-tok")
   log.Println("cook1", cookie)
   if _, ok := oauthCredentials["facebook"]; !ok {
-    next(404, errors.New("OAuth Type not supported"))
+    next(errors.New("OAuth Type not supported"))
     return
   }
   if err != nil || cookie.String() == "" {
     log.Println("err", err)
     log.Println("cookie", cookie.String())
-    next(403, errors.New("Invalid token."))
+    next(errors.New("Invalid token."))
     return
   } else if r.URL.Query().Get("state") != cookie.Value {
-    next(403, errors.New("Invalid access."))
+    next(errors.New("Invalid access."))
     return
   }
 
   tok, err := oauthCredentials["facebook"][requestType].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
   if err != nil {
-    next(403, errors.New("Failed to authenticate."))
+    next(errors.New("Failed to authenticate."))
     return
   }
 
   client := oauthCredentials["facebook"][requestType].Client(oauth2.NoContext, tok)
   resp, err := client.Get("https://graph.facebook.com/me?fields=id,name,email")
   if err != nil {
-    next(403, errors.New("Failed to authenticate."))
+    next(errors.New("Failed to authenticate."))
     return
   }
 
@@ -69,7 +69,7 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
       registered = true
     } else if err != nil {
       log.Println(err)
-      next(404, errors.New("Unable to save user"))
+      next(errors.New("Unable to save user"))
       return
     }
   }
@@ -77,13 +77,13 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
   if requestType == "login" || registered {
     user, err = models.FindByOAuthId(data.ServiceId)
     if err != nil {
-      next(404, errors.New("User Not Found"))
+      next(errors.New("User Not Found"))
       return
     }
     sessionToken, err = user.ResetSessionToken()
     if err != nil {
       log.Println("Unable reset session token error")
-      next(500, errors.New("Internal server error"))
+      next(errors.New("Internal server error"))
       return
     }
   }
@@ -91,5 +91,13 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
   userJson, _ := json.Marshal(user)
   log.Println(string(userJson[:]))
   cookieJar.SetSessionToken(w, sessionToken)
+  cookie = &http.Cookie{
+    Name: "auth_success",
+    Value: "true",
+    HttpOnly: false,
+    Path: "/",
+    Domain: "127.0.0.1",
+  }
+  http.SetCookie(w, cookie)
   http.Redirect(w, r, "/auth/success", 302)
 }

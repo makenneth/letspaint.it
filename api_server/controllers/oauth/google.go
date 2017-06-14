@@ -18,27 +18,27 @@ type GoogleOAuthData struct {
   Email string `json:"email"`
 }
 
-func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(int, error)) {
+func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Request, next func(error)) {
   cookie, err := r.Cookie("oauth-tok")
   log.Println(requestType)
   if _, ok := oauthCredentials["google"]; !ok {
-    next(404, errors.New("OAuth Type not supported"))
+    next(errors.New("OAuth Type not supported"))
     return
   }
   if err != nil || cookie.String() == "" {
     log.Println("err", err)
     log.Println("cookie", cookie.String())
-    next(403, errors.New("Invalid token."))
+    next(errors.New("Invalid token."))
     return
   } else if r.URL.Query().Get("state") != cookie.Value {
     log.Println("value mismatch")
-    next(403, errors.New("Invalid access."))
+    next(errors.New("Invalid access."))
     return
   }
 
   tok, err := oauthCredentials["google"][requestType].Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
   if err != nil {
-    next(403, errors.New("Failed to authenticate."))
+    next(errors.New("Failed to authenticate."))
     return
   }
 
@@ -46,7 +46,7 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
   resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
   defer resp.Body.Close()
   if err != nil {
-    next(403, errors.New("Failed to authenticate."))
+    next(errors.New("Failed to authenticate."))
     return
   }
 
@@ -71,7 +71,7 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
       if err.Error() == "User has already been registered" {
         registered = true
       } else {
-        next(404, errors.New("Unable to save user"))
+        next(errors.New("Unable to save user"))
         return
       }
     }
@@ -81,13 +81,13 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
     user, err = models.FindByOAuthId(data.ServiceId)
     if err != nil {
       log.Println("user not found")
-      next(404, errors.New("User Not Found"))
+      next(errors.New("User Not Found"))
       return
     }
     sessionToken, err = user.ResetSessionToken()
     if err != nil {
       log.Println("Unable reset session token error")
-      next(500, errors.New("Internal server error"))
+      next(errors.New("Internal server error"))
       return
     }
   }
@@ -95,5 +95,13 @@ func GoogleOAuthHandler(requestType string, w http.ResponseWriter, r *http.Reque
   userJson, _ := json.Marshal(user)
   log.Println(string(userJson[:]))
   cookieJar.SetSessionToken(w, sessionToken)
+  cookie = &http.Cookie{
+    Name: "auth_success",
+    Value: "true",
+    HttpOnly: false,
+    Path: "/",
+    Domain: "127.0.0.1",
+  }
+  http.SetCookie(w, cookie)
   http.Redirect(w, r, "/auth/success", 302)
 }

@@ -106,31 +106,46 @@ func errorResponse(w http.ResponseWriter, code int, message error) {
   w.Write(res)
 }
 
+func errorCookie(w http.ResponseWriter, message error) {
+  cookie := http.Cookie{
+    Name: "auth_error",
+    Value: message.Error(),
+    HttpOnly: false,
+    Path: "/",
+    Domain: "127.0.0.1",
+  }
+  http.SetCookie(w, &cookie)
+}
+
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-  callback := func (code int, msg error) {
+  responseCallback := func (code int, msg error) {
     errorResponse(w, code, msg)
+  }
+  cookieCallback := func(msg error) {
+    errorCookie(w, msg)
+    http.Redirect(w, r, "/auth/success", 302)
   }
   switch r.URL.Path {
   case "/oauth/google/signup":
-    oauth.GoogleOAuthHandler("signup", w, r, callback)
+    oauth.GoogleOAuthHandler("signup", w, r, cookieCallback)
   case "/oauth/google/login":
-    oauth.GoogleOAuthHandler("login", w, r, callback)
+    oauth.GoogleOAuthHandler("login", w, r, cookieCallback)
   case "/oauth/facebook/signup":
-    oauth.FacebookOAuthHandler("signup", w, r, callback)
+    oauth.FacebookOAuthHandler("signup", w, r, cookieCallback)
   case "/oauth/facebook/login":
-    oauth.FacebookOAuthHandler("login", w, r, callback)
+    oauth.FacebookOAuthHandler("login", w, r, cookieCallback)
   case "/oauth/login":
-    oauth.LogInHandler(w, r, callback)
+    oauth.LogInHandler(w, r, responseCallback)
   case "/oauth/signup":
-    oauth.SignUpHandler(w, r, callback)
+    oauth.SignUpHandler(w, r, responseCallback)
   case "/api/logout":
-    oauth.LogOutHandler(w, r, callback)
+    oauth.LogOutHandler(w, r, responseCallback)
   case "/api/user":
-    users.GetProfileInfo(w, r, callback)
+    users.GetProfileInfo(w, r, responseCallback)
   case "/api/username":
-    users.UsernameHandler(w, r, callback)
+    users.UsernameHandler(w, r, responseCallback)
   default:
-    templateHandler(w, r, callback)
+    templateHandler(w, r, responseCallback)
   }
 }
 
