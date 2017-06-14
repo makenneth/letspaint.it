@@ -8,6 +8,8 @@ import (
   "github.com/yhat/wsutil"
   "regexp"
   "strconv"
+  "crypto/tls"
+  "golang.org/x/crypto/acme/autocert"
 )
 
 type Host struct {
@@ -71,14 +73,34 @@ func NewProxyServer(config *Config) *ProxyServer {
   return &ProxyServer{config: config, hosts: hosts, staticFileTypes: reg}
 }
 
+func redirect(w http.ResponseWriter, req *http.Request) {
+  target := "https://" + req.Host + req.URL.Path
+  if len(req.URL.RawQuery) > 0 {
+    target += "?" + req.URL.RawQuery
+  }
+  log.Printf("redirect to: %s", target)
+  http.Redirect(w, req, target, http.StatusTemporaryRedirect)
+}
+
 func (self *ProxyServer) Listen() {
+  m := autocert.Manager{
+    Prompt:     autocert.AcceptTOS,
+    HostPolicy: autocert.HostWhitelist("www.letspaint.it", "letspaint.it"),
+  }
+  s := &http.Server{
+    Addr:      ":https",
+    TLSConfig: &tls.Config{
+      GetCertificate: m.GetCertificate,
+    },
+  }
   http.HandleFunc("/", self.handleConnection)
   if self.config.Server == (&HTTPServer{}) || self.config.Server.Port == 0 {
     log.Fatal("Server or port not defined")
   }
   port := self.config.Server.Port
-  log.Println("server listening on port %d", port)
-  http.ListenAndServe(":" + strconv.Itoa(port), nil)
+  log.Println("redirect server listening on port %d", port)
+  go http.ListenAndServe(":" + strconv.Itoa(port),  http.HandlerFunc(redirect))
+  http.ListenAndServeTLS("", "")
 }
 
 func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request) {

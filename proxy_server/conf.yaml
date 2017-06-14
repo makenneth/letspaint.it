@@ -2,13 +2,13 @@ server:
   port: 3005
   upstreams:
     - description: "socket server"
-      scheme: "ws://"
+      scheme: "wss://"
       pattern: "^/ws$"
-      target: "ws://127.0.0.1:4000"
+      target: "wss://127.0.0.1:4000"
     - description: "api server"
-      scheme: "http://"
+      scheme: "https://"
       pattern: "^/$"
-      target: "http://127.0.0.1:3000"
+      target: "https://127.0.0.1:3000"
 static:
   file_types: "(js|css)"
   server: "https://xxxx.com"
