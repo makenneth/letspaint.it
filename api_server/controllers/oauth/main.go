@@ -77,6 +77,7 @@ func LogInHandler(w http.ResponseWriter, r *http.Request, next func(int, error))
     Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
+    Secure: appConfig.Config.Secure,
     HttpOnly: true,
     Domain: appConfig.Config.Domain,
   }
@@ -98,6 +99,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)
     Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
+    Secure: appConfig.Config.Secure,
     HttpOnly: true,
     Domain: appConfig.Config.Domain,
   }

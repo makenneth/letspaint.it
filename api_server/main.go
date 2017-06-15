@@ -25,6 +25,7 @@ type Config struct {
   OAuth map[string]*oauth.OAuthCredential `yaml:"oauth"`
   DB map[string]string `yaml:"database"`
   Domain string `yaml:"domain"`
+  Secure bool `yaml:"secure"`
 }
 
 type ErrorMessage struct {
@@ -162,7 +163,7 @@ func main() {
   var port string
   err = yaml.Unmarshal(yamlFile, &config)
   checkError(err)
-  appConfig.Initialize(config.Domain)
+  appConfig.Initialize(config.Domain, config.Secure)
   oauth.Initialize(config.OAuth)
   connection.Connect(&config.DB)
   http.HandleFunc("/", httpHandler)

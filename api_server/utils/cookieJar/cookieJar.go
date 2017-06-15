@@ -12,6 +12,7 @@ func SetSessionToken(w http.ResponseWriter, sessionToken string) {
     Value: sessionToken,
     HttpOnly: true,
     Path: "/",
+    Secure: appConfig.Config.Secure,
     Domain: appConfig.Config.Domain,
   }
   http.SetCookie(w, &cookie)
