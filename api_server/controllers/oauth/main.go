@@ -13,6 +13,7 @@ import (
   "golang.org/x/oauth2/facebook"
   "github.com/makenneth/letspaint/api_server/models"
   "github.com/makenneth/letspaint/api_server/utils/token"
+  "github.com/makenneth/letspaint/api_server/utils/appConfig"
 )
 
 type OAuthCredential struct {
@@ -39,6 +40,7 @@ func Initialize(config map[string]*OAuthCredential) {
   oauthCredentials["google"]["signup"] = googleConfig("signup", config["google"])
   oauthCredentials["facebook"]["login"] = facebookConfig("login", config["facebook"])
   oauthCredentials["facebook"]["signup"] = facebookConfig("signup", config["facebook"])
+  log.Println("Initialized oauth settings")
 }
 
 func LogInHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
@@ -47,16 +49,38 @@ func LogInHandler(w http.ResponseWriter, r *http.Request, next func(int, error))
     next(404, errors.New("Type not supported"))
     return
   }
-
+  done := make(chan bool)
+  go func() {
+    cookie := &http.Cookie{
+      Name: "auth_success",
+      Value: "true",
+      HttpOnly: false,
+      Path: "/",
+      Domain: appConfig.Config.Domain,
+      MaxAge: -1,
+      Expires: time.Now().Add(-100 * time.Hour),
+    }
+    http.SetCookie(w, cookie)
+    cookie = &http.Cookie{
+      Name: "auth_error",
+      Value: "true",
+      HttpOnly: false,
+      Path: "/",
+      MaxAge: -1,
+      Expires: time.Now().Add(-100 * time.Hour),
+    }
+    http.SetCookie(w, cookie)
+    done <- true
+  }()
   tok, _ := token.GenerateRandomToken(32)
   cookie := http.Cookie{
     Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
     HttpOnly: true,
-    Domain: "127.0.0.1",
+    Domain: appConfig.Config.Domain,
   }
-
+  <- done
   http.SetCookie(w, &cookie)
   url := map[string]string{"url": GetLoginURL("login", oauthType, tok)}
   data, _ := json.Marshal(url)
@@ -75,7 +99,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
     HttpOnly: true,
-    Domain: "127.0.0.1",
+    Domain: appConfig.Config.Domain,
   }
   http.SetCookie(w, &cookie)
   url := map[string]string{"url": GetLoginURL("signup", oauthType, tok)}
@@ -102,7 +126,7 @@ func googleConfig(requestType string, cred *OAuthCredential) *oauth2.Config {
   return &oauth2.Config{
     ClientID: cred.ClientId,
     ClientSecret: cred.ClientSecret,
-    RedirectURL: fmt.Sprintf("http://127.0.0.1:3000/oauth/google/%s", requestType),
+    RedirectURL: fmt.Sprintf("%s/oauth/google/%s", appConfig.Config.Domain, requestType),
     Scopes: []string{
       "https://www.googleapis.com/auth/userinfo.email",
     },
@@ -114,7 +138,7 @@ func facebookConfig(requestType string, cred *OAuthCredential) *oauth2.Config {
   return &oauth2.Config{
     ClientID: cred.ClientId,
     ClientSecret: cred.ClientSecret,
-    RedirectURL: fmt.Sprintf("http://127.0.0.1:3000/oauth/facebook/%s", requestType),
+    RedirectURL: fmt.Sprintf("%s/oauth/facebook/%s", appConfig.Config.Domain, requestType),
     Scopes: []string{
       "public_profile",
       "email",

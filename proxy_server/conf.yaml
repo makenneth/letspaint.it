@@ -7,9 +7,9 @@ server:
       target: "wss://127.0.0.1:4000"
     - description: "api server"
       scheme: "https://"
-      pattern: "^/$"
+      pattern: "^/($|oauth|api)"
       target: "https://127.0.0.1:3000"
-  default: "./index.html"
 static:
   file_types: "(js|css)"
   server: "https://xxxx.com"
+default: "./index.html"

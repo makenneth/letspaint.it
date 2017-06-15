@@ -3,6 +3,7 @@ package cookieJar
 import (
  "errors"
  "net/http"
+ "github.com/makenneth/letspaint/api_server/utils/appConfig"
 )
 
 func SetSessionToken(w http.ResponseWriter, sessionToken string) {
@@ -11,7 +12,7 @@ func SetSessionToken(w http.ResponseWriter, sessionToken string) {
     Value: sessionToken,
     HttpOnly: true,
     Path: "/",
-    Domain: "127.0.0.1",
+    Domain: appConfig.Config.Domain,
   }
   http.SetCookie(w, &cookie)
 }

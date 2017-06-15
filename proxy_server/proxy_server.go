@@ -94,12 +94,14 @@ func redirect(w http.ResponseWriter, req *http.Request) {
 func (self *ProxyServer) Listen() {
   m := autocert.Manager{
     Prompt:     autocert.AcceptTOS,
+    Cache: autocert.DirCache("certs"),
     HostPolicy: autocert.HostWhitelist("www.letspaint.it", "letspaint.it"),
   }
   s := &http.Server{
     Addr:      ":https",
     TLSConfig: &tls.Config{
       GetCertificate: m.GetCertificate,
+      ClientSessionCache: tls.NewLRUClientSessionCache(50),
     },
   }
   if self.config.Default != "" {
@@ -116,8 +118,8 @@ func (self *ProxyServer) Listen() {
   }
   port := self.config.Server.Port
   log.Println("redirect server listening on port %d", port)
-  go http.ListenAndServe(":" + strconv.Itoa(port),  http.HandlerFunc(redirect))
-  http.ListenAndServeTLS("", "")
+  go http.ListenAndServe(":" + strconv.Itoa(port), http.HandlerFunc(redirect))
+  s.ListenAndServeTLS("", "")
 }
 
 func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request) {

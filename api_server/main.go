@@ -4,6 +4,8 @@ import (
   "fmt"
   "log"
   "net/http"
+  "crypto/tls"
+  "golang.org/x/crypto/acme/autocert"
   "encoding/json"
   "gopkg.in/yaml.v2"
   "io/ioutil"
@@ -11,6 +13,7 @@ import (
   "github.com/makenneth/letspaint/api_server/controllers/oauth"
   "github.com/makenneth/letspaint/api_server/controllers/users"
   "github.com/makenneth/letspaint/api_server/utils/connection"
+  "github.com/makenneth/letspaint/api_server/utils/appConfig"
 )
 
 type ServerConfig struct {
@@ -21,6 +24,7 @@ type Config struct {
   Server *ServerConfig `yaml:"server"`
   OAuth map[string]*oauth.OAuthCredential `yaml:"oauth"`
   DB map[string]string `yaml:"database"`
+  Domain string `yaml:"domain"`
 }
 
 type ErrorMessage struct {
@@ -158,6 +162,7 @@ func main() {
   var port string
   err = yaml.Unmarshal(yamlFile, &config)
   checkError(err)
+  appConfig.Initialize(config.Domain)
   oauth.Initialize(config.OAuth)
   connection.Connect(&config.DB)
   http.HandleFunc("/", httpHandler)
@@ -167,8 +172,22 @@ func main() {
   } else {
     port = ":3000"
   }
+
+  m := autocert.Manager{
+    Prompt:     autocert.AcceptTOS,
+    Cache:      autocert.DirCache("certs"),
+    HostPolicy: autocert.HostWhitelist("www.letspaint.it", "letspaint.it"),
+  }
+  s := &http.Server{
+    Addr:      port,
+    TLSConfig: &tls.Config{
+      GetCertificate: m.GetCertificate,
+      ClientSessionCache: tls.NewLRUClientSessionCache(50),
+    },
+  }
+
   log.Printf("http server listening at port %s", port)
-  log.Fatal(http.ListenAndServe(port, nil))
+  log.Fatal(s.ListenAndServeTLS("", ""))
 }
 
 func checkError(err error) {

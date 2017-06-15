@@ -41,7 +41,7 @@ func (self *RedisHandler) GetBoard() ([]int8, []string) {
 
 func (self *RedisHandler) Update(data *GridData) {
   key := "grid:" + strconv.Itoa(data.Pos)
-  pointJson, err := json.Marshal(&RedisData{data.Color, data.Username})
+  pointJson, err := json.Marshal(&RedisData{Color: data.Color, Username: data.Username})
   if err != nil {
 
     log.Println("marshalling", err)

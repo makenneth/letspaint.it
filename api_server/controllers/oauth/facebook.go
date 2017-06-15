@@ -9,6 +9,7 @@ import (
   "golang.org/x/oauth2"
   "github.com/makenneth/letspaint/api_server/models"
   "github.com/makenneth/letspaint/api_server/utils/cookieJar"
+  "github.com/makenneth/letspaint/api_server/utils/appConfig"
 )
 
 type FacebookOAuthData struct {
@@ -96,7 +97,7 @@ func FacebookOAuthHandler(requestType string, w http.ResponseWriter, r *http.Req
     Value: "true",
     HttpOnly: false,
     Path: "/",
-    Domain: "127.0.0.1",
+    Domain: appConfig.Config.Domain,
   }
   http.SetCookie(w, cookie)
   http.Redirect(w, r, "/auth/success", 302)
