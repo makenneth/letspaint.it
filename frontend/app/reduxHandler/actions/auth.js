@@ -26,6 +26,7 @@ export function loadAuth() {
 }
 
 export function logIn(type) {
+  const newWindow = window.open(null, 'Sign In to letspaint', 'height=600,width=450');
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/login', {
@@ -33,10 +34,10 @@ export function logIn(type) {
       credentials: 'include',
       query: { type },
     }).then((res) => {
-      const newWindow = window.open(res.url, 'Sign In to letspaint');
+      newWindow.location = res.url;
       const int = setInterval(checkIfWindowCloses, 500);
       function checkIfWindowCloses() {
-        if (newWindow.closed) {
+        if (newWindow && newWindow.closed) {
           clearInterval(int);
           const error = getCookie('auth_error');
           const success = getCookie('auth_success');
@@ -79,6 +80,7 @@ export function logIn(type) {
 }
 
 export function signUp(type) {
+  const newWindow = window.open(null, 'Sign Up with letspaint', 'height=600,width=450');
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/signup', {
@@ -88,10 +90,10 @@ export function signUp(type) {
     }).then(
       res => (
         new Promise((resolve, reject) => {
-          const newWindow = window.open(res.url, 'Sign Up with letspaint');
+          newWindow.location = res.url;
           const int = setInterval(checkIfWindowCloses, 500);
           function checkIfWindowCloses() {
-            if (newWindow.closed) {
+            if (newWindow && newWindow.closed) {
               clearInterval(int);
               const error = getCookie('oauth_error');
               const success = getCookie('auth_success');
