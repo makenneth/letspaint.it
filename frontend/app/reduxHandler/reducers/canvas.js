@@ -5,7 +5,7 @@ const initialState = {
   color: 32,
   center: [50, 50],
   scale: 5,
-}
+};
 
 export default function Canvas(state = initialState, action) {
   switch (action.type) {
@@ -23,12 +23,23 @@ export default function Canvas(state = initialState, action) {
 
     case ActionTypes.ADJUST_CANVAS_SCALE: {
       const { scale, center } = state;
-      const newX = Math.floor(center[0] * (scale / action.scale));
-      const newY = Math.floor(center[1] * (scale / action.scale));
+      let newX = center[0] * (scale / action.scale);
+      let newY = center[1] * (scale / action.scale);
+      const newRadius = IMAGE_WIDTH / 2 / action.scale;
+      if (newX < newRadius) {
+        newX = newRadius;
+      } else if (newX > center - newRadius) {
+        newX = center - newRadius;
+      }
+      if (newY < newRadius) {
+        newY = newRadius;
+      } else if (newY > center - newRadius) {
+        newY = center - newRadius;
+      }
       return {
         ...state,
         scale: action.scale,
-        center: [newX, newY],
+        center: [Math.round(newX), Math.round(newY)],
       };
     }
 
