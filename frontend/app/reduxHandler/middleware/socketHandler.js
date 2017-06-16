@@ -1,9 +1,13 @@
 import ActionTypes from 'actionTypes';
 import * as WebSocketActions from 'actions/websocket';
-import { updateStatistics } from 'actions';
-
+import {
+  updateStatistics, alertWarningMessage, alertErrorMessage, alertSuccessMessage
+} from 'actions';
+import Pako from 'pako';
 let socket;
-
+let websocketClient;
+let retryTimeout;
+let retryCount = 0;
 export const socketMiddleware = (store) => next => action => {
   if (!socket) return next(action);
   switch (action.type) {
@@ -26,36 +30,83 @@ export const socketMiddleware = (store) => next => action => {
   return next(action);
 }
 
-export default function startWebSocket({ getState, dispatch }) {
-  socket = new WebSocket(process.env.WS_URL);
-
-  const messageHandler = (res) => {
-    const { type, data } = JSON.parse(res.data);
-    switch (type) {
-      case 'USER_COUNT_UPDATE':
-        dispatch(WebSocketActions.userCountUpdate(data));
-        break;
-      case 'PAINT_INPUT_MADE':
-        dispatch(WebSocketActions.paintInputReceived(data));
-        dispatch(updateStatistics(data.username));
-        break;
-      case 'INITIAL_STATE':
-        dispatch(WebSocketActions.partialInitialStateUpdate(data));
-        break;
-      case 'FULL_INITIAL_STATE':
-        dispatch(WebSocketActions.initialStateUpdate(data));
-        break;
-      case 'RANKING_UPDATE':
-        dispatch(WebSocketActions.rankingUpdate(data));
-        break;
-      case 'USER_INFO_SET':
-        dispatch(WebSocketActions.userInfoSet(data));
-        break;
-      default:
-        break;
-    }
-
+export function closeWebsocket() {
+  if (websocketClient) {
+    websocketClient.close();
+    websocketClient = null;
+    socket = null;
   }
+}
+
+export default function startWebSocket(store) {
+  const { dispatch, getState } = store;
+  socket = new WebSocket(process.env.WS_URL);
+  let retryInt;
+  const messageHandler = (res) => {
+    if (res.data instanceof Blob) {
+      try {
+        var reader = new FileReader();
+        reader.addEventListener('loadend', () => {
+          const unzipped = Pako.inflate((reader.result), { to: 'string' });
+          const parsed = JSON.parse(unzipped);
+          if (parsed && parsed.type === 'FULL_INITIAL_STATE') {
+            dispatch(WebSocketActions.initialStateUpdate(parsed.data));
+          }
+        });
+        reader.readAsArrayBuffer(res.data);
+      } catch (e) {
+        console.warn(e);
+      }
+    } else {
+      const { type, data } = JSON.parse(res.data) || {};
+      switch (type) {
+        case 'USER_COUNT_UPDATE':
+          dispatch(WebSocketActions.userCountUpdate(data));
+          break;
+        case 'PAINT_INPUT_MADE':
+          dispatch(WebSocketActions.paintInputReceived(data));
+          dispatch(updateStatistics(data.username));
+          break;
+        case 'INITIAL_STATE':
+          dispatch(WebSocketActions.partialInitialStateUpdate(data));
+          break;
+        case 'RANKING_UPDATE':
+          dispatch(WebSocketActions.rankingUpdate(data));
+          break;
+        case 'USER_INFO_SET':
+          dispatch(WebSocketActions.userInfoSet(data));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  socket.onopen = function() {
+    if (retryTimeout) clearInterval(retryTimeout);
+    if (retryCount > 0) {
+      dispatch(alertSuccessMessage('Successfully reconnected.'));
+      retryCount = 0;
+    }
+  }
+  socket.onconnection = function(cl) {
+    websocketClient = cl;
+  }
+
+  socket.onclose = function() {
+    if (retryCount === 0) {
+      dispatch(alertWarningMessage('Connection closed. Attempting to reconnect...', 'infinite'));
+    }
+    retryTimeout = setTimeout(() => {
+      retryCount += 1
+      if (retryCount > 10) {
+        dispatch(alertErrorMessage('Failed to reconnect. Please try again later.'));
+      } else {
+        startWebSocket(store);
+      }
+    }, 1000 + retryCount * 2000);
+  }
+
   socket.onmessage = messageHandler;
   socket.onerror = (err) => {
     console.warn(err);
