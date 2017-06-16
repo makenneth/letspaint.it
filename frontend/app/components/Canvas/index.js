@@ -14,7 +14,8 @@ export default class Canvas {
     this.changed = true;
     this.imageData = null;
     this.currentValue = this.select(store.getState());
-
+    this.rateInterval = null;
+    this.canMakeInput = false;
     this.unsubscribe = store.subscribe(this.handleStoreChange);
     this.canvas.addEventListener('mousedown', this.handleClick);
     this.int = setInterval(() => this.draw(), 30);
@@ -68,6 +69,11 @@ export default class Canvas {
     const previousValue = this.currentValue;
     const scale = this.currentScale;
     this.currentValue = this.select(store.getState());
+    const newRate = store.getState().grid.rateInterval;
+    if (this.rateInterval !== newRate) {
+      this.canMakeInput = true;
+      this.rateInterval = newRate;
+    }
 
     if (this.currentValue !== previousValue) {
       this.changed = true;
@@ -130,16 +136,24 @@ export default class Canvas {
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);
     this.canvas.removeEventListener('mouseup', this.handleMouseUp);
     if (this.startMousePos === this.currentMousePos) {
-      const center = this.selectCenter(store.getState());
-      const scale = this.selectScale(store.getState());
-      const radius = (CANVAS_WIDTH / scale) / 2;
-      const y = Math.floor((this.currentMousePos[1]) / scale) + (center[1] - radius);
-      const x = Math.floor((this.currentMousePos[0]) / scale) + (center[0] - radius);
-      const input = {
-        color: this.selectColor(store.getState()),
-        pos: (y * IMAGE_WIDTH) + x,
-      };
-      store.dispatch(paintInputMade(input));
+      if (this.canMakeInput) {
+        const center = this.selectCenter(store.getState());
+        const scale = this.selectScale(store.getState());
+        const radius = (CANVAS_WIDTH / scale) / 2;
+        const y = Math.floor((this.currentMousePos[1]) / scale) + (center[1] - radius);
+        const x = Math.floor((this.currentMousePos[0]) / scale) + (center[0] - radius);
+        const input = {
+          color: this.selectColor(store.getState()),
+          pos: (y * IMAGE_WIDTH) + x,
+        };
+        store.dispatch(paintInputMade(input));
+        if (this.rateInterval) {
+          this.canMakeInput = false;
+          this.inputTimeout = setTimeout(() => {
+            this.canMakeInput = true;
+          }, this.rateInterval * 1000);
+        }
+      }
     } else {
       this.updateCenter(layerX, layerY);
       this.canvas.style.cursor = 'default';
