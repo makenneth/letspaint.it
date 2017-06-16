@@ -31,9 +31,12 @@ export const socketMiddleware = (store) => next => action => {
 }
 
 export function closeWebsocket() {
-  if (websocketClient) {
-    websocketClient.close();
-    // websocketClient = null;
+  if (socket) {
+    socket.close(1000, 'User logout');
+    socket.onclose = null;
+    socket.onpen = null;
+    socket.onmessage = null;
+    socket.onerror = null;
     socket = null;
   }
 }
@@ -91,9 +94,6 @@ export default function startWebSocket(store) {
       dispatch(alertSuccessMessage('Successfully reconnected.'));
       retryCount = 0;
     }
-  }
-  socket.onconnection = function(cl) {
-    websocketClient = cl;
   }
 
   socket.onclose = function() {
