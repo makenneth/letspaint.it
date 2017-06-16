@@ -11,6 +11,7 @@ type Client struct {
   server *Server
   done chan bool
   send chan *Message
+  sendRaw chan []byte
   Id int
   Username string
 }
@@ -19,11 +20,16 @@ func (self *Client) Write() chan<- *Message {
   return (chan<- *Message)(self.send)
 }
 
+func (self *Client) WriteGZIP() chan<- []byte {
+  return (chan<- []byte)(self.sendRaw)
+}
+
 func NewClient(ws *websocket.Conn, server *Server) *Client {
   done := make(chan bool)
   send := make(chan *Message)
+  sendRaw := make(chan []byte)
 
-  return &Client{ws: ws, server: server, done: done, send: send}
+  return &Client{ws: ws, server: server, done: done, send: send, sendRaw: sendRaw}
 }
 
 func (self *Client) Listen() {
@@ -35,9 +41,16 @@ func (self *Client) Listen() {
 func (self *Client) ListenWrite() {
   for {
     select {
+    case msg, ok := <-self.sendRaw:
+      if ok {
+        websocket.Message.Send(self.ws, msg)
+      } else {
+        self.server.RemoveClient() <-self
+        self.done <- true
+        break
+      }
     case msg, ok := <-self.send:
       if ok {
-        log.Println("sending message to client %s", self.Username)
         websocket.JSON.Send(self.ws, msg)
       } else {
         self.server.RemoveClient() <-self
@@ -62,7 +75,7 @@ func (self *Client) ListenRead() {
     default:
       var msg Message
       err := websocket.JSON.Receive(self.ws, &msg)
-      log.Println("received message", msg)
+      log.Println("received message", msg.MessageType)
       if err != nil {
         log.Println("err in %s...", self.Username)
         self.done <- true

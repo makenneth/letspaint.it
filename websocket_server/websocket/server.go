@@ -8,6 +8,8 @@ import (
   "log"
   "time"
   "sync"
+  "compress/gzip"
+  "bytes"
 )
 
 var mutex sync.Mutex
@@ -164,9 +166,17 @@ func (self *Server) sendInitialState(c *Client) {
   state := &InitialState{&BoardData{colors, usernames}}
   data, _ := json.Marshal(state)
   c.Write() <- &Message{MessageType: "INITIAL_STATE", Data: data}
-  state = &InitialState{&BoardData{self.colors, self.usernames}}
-  data, _ = json.Marshal(state)
-  c.Write() <- &Message{MessageType: "FULL_INITIAL_STATE", Data: data}
+  go func() {
+    state := &InitialState{&BoardData{self.colors, self.usernames}}
+    data, _ := json.Marshal(state)
+    j, _ := json.Marshal(&Message{MessageType: "FULL_INITIAL_STATE", Data: data})
+    var b bytes.Buffer
+    w := gzip.NewWriter(&b)
+    w.Write(j)
+    w.Close()
+    gzipped := b.Bytes()
+    c.WriteGZIP() <- gzipped
+  }()
 }
 
 func (self *Server) updateBoard(data *GridData) {
@@ -194,7 +204,7 @@ func (self *Server) updateRanking() {
 
     ranking := make([]*RankingStats, 0)
     for i, j := 0, len(usernames) - 1; i < 10 && j >= 0; j-- {
-      if len(usernames[j]) > 0 {
+      if len(usernames[j]) > 0 && usernames[j][0].Username != "" {
         ranking = append(ranking, usernames[j]...)
         i += len(usernames[j])
       }
