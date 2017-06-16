@@ -12,7 +12,7 @@ import {
 
 const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
-  rateInterval: null,
+  rateInterval: 500,
   usernames: [],
   connectedUsers: 0,
   ranking: [],
@@ -57,7 +57,7 @@ export default function Grid(state = initialState, action) {
     case ActionTypes.SET_INPUT_RATE:
       return {
         ...state,
-        rateInterval: action.rate,
+        rateInterval: action.rate < 500 ? 500 : action.rate,
       };
 
     default:

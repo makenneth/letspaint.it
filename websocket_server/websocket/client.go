@@ -95,7 +95,7 @@ func (self *Client) HandleMessage(msg *Message) {
     if time.Now().After(self.preventUntil) {
       msg.Username = self.Username
       self.server.Broadcast() <- msg
-      self.preventUntil = time.Now().Add(Rate * time.Second)
+      self.preventUntil = time.Now().Add(Rate * time.Millisecond)
     } else {
       message, err := formatErrorMessage("Slow down...")
       if err == nil {

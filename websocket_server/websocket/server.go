@@ -12,7 +12,7 @@ import (
   "bytes"
 )
 
-const Rate = 0.1
+const Rate = 500
 var mutex sync.Mutex
 type RedisData struct {
   Id int `json:"id"`

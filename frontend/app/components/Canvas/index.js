@@ -1,5 +1,5 @@
 import store from 'reduxHandler/store';
-import { paintInputMade, setCenter, startCanvasLoading, alertErrorMessage } from 'actions';
+import { paintInputMade, setCenter, startCanvasLoading, alertErrorMessage, alertWarningMessage } from 'actions';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 export default class Canvas {
@@ -14,8 +14,8 @@ export default class Canvas {
     this.changed = true;
     this.imageData = null;
     this.currentValue = this.select(store.getState());
-    this.rateInterval = null;
-    this.canMakeInput = false;
+    this.rateInterval = 1000;
+    this.canMakeInput = true;
     this.unsubscribe = store.subscribe(this.handleStoreChange);
     this.canvas.addEventListener('mousedown', this.handleClick);
     this.int = setInterval(() => this.draw(), 30);
@@ -71,7 +71,6 @@ export default class Canvas {
     this.currentValue = this.select(store.getState());
     const newRate = store.getState().grid.rateInterval;
     if (this.rateInterval !== newRate) {
-      this.canMakeInput = true;
       this.rateInterval = newRate;
     }
 
@@ -151,10 +150,10 @@ export default class Canvas {
           this.canMakeInput = false;
           this.inputTimeout = setTimeout(() => {
             this.canMakeInput = true;
-          }, this.rateInterval * 1000);
+          }, this.rateInterval);
         }
       } else {
-        store.dispatch(alertErrorMessage('Slow down...', 'short'))
+        store.dispatch(alertWarningMessage('Slow down...', 'short'))
       }
     } else {
       this.updateCenter(layerX, layerY);
