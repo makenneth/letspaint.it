@@ -4,8 +4,6 @@ import (
   "fmt"
   "log"
   "net/http"
-  "crypto/tls"
-  "golang.org/x/crypto/acme/autocert"
   "encoding/json"
   "gopkg.in/yaml.v2"
   "io/ioutil"
@@ -25,7 +23,7 @@ type Config struct {
   OAuth map[string]*oauth.OAuthCredential `yaml:"oauth"`
   DB map[string]string `yaml:"database"`
   Domain string `yaml:"domain"`
-  Secure bool `yaml:"secure"`
+  Secure bool `yaml:"ssl"`
 }
 
 type ErrorMessage struct {
@@ -174,21 +172,8 @@ func main() {
     port = ":3000"
   }
 
-  m := autocert.Manager{
-    Prompt:     autocert.AcceptTOS,
-    Cache:      autocert.DirCache("certs"),
-    HostPolicy: autocert.HostWhitelist("www.letspaint.it", "letspaint.it"),
-  }
-  s := &http.Server{
-    Addr:      port,
-    TLSConfig: &tls.Config{
-      GetCertificate: m.GetCertificate,
-      ClientSessionCache: tls.NewLRUClientSessionCache(50),
-    },
-  }
-
   log.Printf("http server listening at port %s", port)
-  log.Fatal(s.ListenAndServeTLS("", ""))
+  log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func checkError(err error) {

@@ -36,10 +36,12 @@ export default class UsernameSet extends Component {
 
   handleSubmit = (ev) => {
     ev.preventDefault();
-    if (this.state.username.length > 5) {
-      this.props.setUsername(this.state.username);
-    } else {
+    if (this.state.username.length <= 5) {
       this.setState({ error: 'Usernames must be at least five characters long.' });
+    } else if (this.state.username.length > 20) {
+      this.setState({ error: 'Usernames cannot be longer than 20 characters.' });
+    } else {
+      this.props.setUsername(this.state.username);
     }
   }
 
@@ -60,7 +62,7 @@ export default class UsernameSet extends Component {
               id="username"
               type="text"
               value={this.state.username}
-              placeholder="Pick a username"
+              placeholder="Pick a username (at least 5 chars long)"
               onChange={this.handleUsernameChange}
             />
             <div className="error-message">{this.state.error}</div>

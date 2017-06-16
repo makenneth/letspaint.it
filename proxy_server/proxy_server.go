@@ -138,12 +138,14 @@ func (self *ProxyServer) handleConnection(w http.ResponseWriter, r *http.Request
         log.Println(host.scheme)
         if host.scheme == "ws://" || host.scheme == "wss://" {
           host.proxy.(*wsutil.ReverseProxy).ServeHTTP(w, r)
+          break
         } else {
           host.proxy.(*httputil.ReverseProxy).ServeHTTP(w, r)
+          break
         }
       }
     }
-    if self.config.Default != "" {
+    if !matched && self.config.Default != "" {
       serveTemplate(w, r)
     } else {
       log.Println("url pattern not matched")

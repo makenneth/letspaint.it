@@ -77,7 +77,6 @@ func LogInHandler(w http.ResponseWriter, r *http.Request, next func(int, error))
     Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
-    Secure: appConfig.Config.Secure,
     HttpOnly: true,
     Domain: appConfig.Config.Domain,
   }
@@ -94,15 +93,39 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request, next func(int, error)
     next(404, errors.New("Type not supported"))
     return
   }
+  done := make(chan bool)
+  go func() {
+    cookie := &http.Cookie{
+      Name: "auth_success",
+      Value: "true",
+      HttpOnly: false,
+      Path: "/",
+      Domain: appConfig.Config.Domain,
+      MaxAge: -1,
+      Expires: time.Now().Add(-100 * time.Hour),
+    }
+    http.SetCookie(w, cookie)
+    cookie = &http.Cookie{
+      Name: "auth_error",
+      Value: "true",
+      HttpOnly: false,
+      Path: "/",
+      Domain: appConfig.Config.Domain,
+      MaxAge: -1,
+      Expires: time.Now().Add(-100 * time.Hour),
+    }
+    http.SetCookie(w, cookie)
+    done <- true
+  }()
   tok, _ := token.GenerateRandomToken(32)
   cookie := http.Cookie{
     Name: "oauth-tok",
     Value: tok,
     Expires: time.Now().Add(15 * time.Minute),
-    Secure: appConfig.Config.Secure,
     HttpOnly: true,
     Domain: appConfig.Config.Domain,
   }
+  <- done
   http.SetCookie(w, &cookie)
   url := map[string]string{"url": GetLoginURL("signup", oauthType, tok)}
   data, _ := json.Marshal(url)
