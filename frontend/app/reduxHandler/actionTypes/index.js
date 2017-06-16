@@ -37,4 +37,6 @@ export default keymirror({
   IS_USERNAME_AVAILABLE_REQUEST: null,
   IS_USERNAME_AVAILABLE_SUCCESS: null,
   IS_USERNAME_AVAILABLE_FAILURE: null,
+
+  SET_INPUT_RATE: null,
 });

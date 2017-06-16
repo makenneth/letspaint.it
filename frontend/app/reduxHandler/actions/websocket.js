@@ -40,3 +40,10 @@ export function userInfoSet() {
     type: ActionTypes.USER_INFO_SET,
   };
 }
+
+export function setInputRate(rate) {
+  return {
+    type: ActionTypes.SET_INPUT_RATE,
+    rate,
+  };
+}

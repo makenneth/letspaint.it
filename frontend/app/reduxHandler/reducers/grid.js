@@ -12,6 +12,7 @@ import {
 
 const initialState = {
   data: initialImageData(IMAGE_WIDTH, IMAGE_HEIGHT),
+  rateInterval: null,
   usernames: [],
   connectedUsers: 0,
   ranking: [],
@@ -26,8 +27,7 @@ export default function Grid(state = initialState, action) {
         ...state,
         isLoading: true,
       };
-    case ActionTypes.PAINT_INPUT_RECEIVED:
-    case ActionTypes.PAINT_INPUT_MADE: {
+    case ActionTypes.PAINT_INPUT_RECEIVED: {
       const { pos, color, username } = action.input;
       return {
         ...state,
@@ -50,6 +50,12 @@ export default function Grid(state = initialState, action) {
         isLoading: false,
         data: setPartialGrid(action.grid.colors),
         usernames: setPartialUsernames(action.grid.usernames),
+      };
+
+    case ActionTypes.SET_INPUT_RATE:
+      return {
+        ...state,
+        rateInterval: action.rate,
       };
 
     default:

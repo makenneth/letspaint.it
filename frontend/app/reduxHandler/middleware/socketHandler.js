@@ -33,7 +33,7 @@ export const socketMiddleware = (store) => next => action => {
 export function closeWebsocket() {
   if (websocketClient) {
     websocketClient.close();
-    websocketClient = null;
+    // websocketClient = null;
     socket = null;
   }
 }
@@ -60,6 +60,9 @@ export default function startWebSocket(store) {
     } else {
       const { type, data } = JSON.parse(res.data) || {};
       switch (type) {
+        case 'SET_INPUT_RATE':
+          dispatch(WebSocketActions.setInputRate(data));
+          break;
         case 'USER_COUNT_UPDATE':
           dispatch(WebSocketActions.userCountUpdate(data));
           break;
@@ -83,7 +86,7 @@ export default function startWebSocket(store) {
   }
 
   socket.onopen = function() {
-    if (retryTimeout) clearInterval(retryTimeout);
+    if (retryTimeout) clearTimeout(retryTimeout);
     if (retryCount > 0) {
       dispatch(alertSuccessMessage('Successfully reconnected.'));
       retryCount = 0;
@@ -100,7 +103,7 @@ export default function startWebSocket(store) {
     retryTimeout = setTimeout(() => {
       retryCount += 1
       if (retryCount > 10) {
-        dispatch(alertErrorMessage('Failed to reconnect. Please try again later.'));
+        dispatch(alertErrorMessage('Failed to reconnect. Please try again later.', 'infinite'));
       } else {
         startWebSocket(store);
       }
