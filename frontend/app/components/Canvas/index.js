@@ -1,5 +1,5 @@
 import store from 'reduxHandler/store';
-import { paintInputMade, setCenter, startCanvasLoading } from 'actions';
+import { paintInputMade, setCenter, startCanvasLoading, alertErrorMessage } from 'actions';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT } from 'constants';
 
 export default class Canvas {
@@ -153,6 +153,8 @@ export default class Canvas {
             this.canMakeInput = true;
           }, this.rateInterval * 1000);
         }
+      } else {
+        store.dispatch(alertErrorMessage('Slow down...', 'short'))
       }
     } else {
       this.updateCenter(layerX, layerY);

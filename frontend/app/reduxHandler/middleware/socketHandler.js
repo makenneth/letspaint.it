@@ -63,6 +63,8 @@ export default function startWebSocket(store) {
     } else {
       const { type, data } = JSON.parse(res.data) || {};
       switch (type) {
+        case 'ERROR_MESSAGE':
+          dispatch(alertWarningMessage(data.message), 'short');
         case 'SET_INPUT_RATE':
           dispatch(WebSocketActions.setInputRate(data));
           break;

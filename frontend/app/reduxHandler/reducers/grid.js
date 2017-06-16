@@ -27,7 +27,9 @@ export default function Grid(state = initialState, action) {
         ...state,
         isLoading: true,
       };
-    case ActionTypes.PAINT_INPUT_RECEIVED: {
+
+    case ActionTypes.PAINT_INPUT_RECEIVED:
+    case ActionTypes.PAINT_INPUT_MADE: {
       const { pos, color, username } = action.input;
       return {
         ...state,

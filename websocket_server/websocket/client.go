@@ -96,6 +96,11 @@ func (self *Client) HandleMessage(msg *Message) {
       msg.Username = self.Username
       self.server.Broadcast() <- msg
       self.preventUntil = time.Now().Add(Rate * time.Second)
+    } else {
+      message, err := formatErrorMessage("Slow down...")
+      if err == nil {
+        self.send <- message
+      }
     }
     break
   case "SET_USER_INFO":
@@ -117,3 +122,13 @@ func (self *Client) HandleMessage(msg *Message) {
   }
 }
 
+func formatErrorMessage(message string) (*Message, error){
+  errMessage := make(map[string]string)
+  errMessage["message"] = message
+  data, err := json.Marshal(errMessage)
+  if err != nil {
+    return nil, err
+  }
+
+  return &Message{MessageType: "ERROR_MESSAGE", Data: data}, nil
+}

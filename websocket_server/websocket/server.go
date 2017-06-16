@@ -12,7 +12,7 @@ import (
   "bytes"
 )
 
-const Rate = 1
+const Rate = 0.1
 var mutex sync.Mutex
 type RedisData struct {
   Id int `json:"id"`
@@ -158,6 +158,15 @@ func (self *Server) Listen() {
           c.Write() <- m
         }
     }
+  }
+}
+
+func (self *Server) sendErrorMessage(c *Client, message string) {
+  msg, err := formatErrorMessage(message)
+  if err == nil {
+    c.Write() <- msg
+  } else {
+    log.Println("formatError", err)
   }
 }
 

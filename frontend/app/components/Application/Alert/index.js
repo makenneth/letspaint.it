@@ -13,7 +13,7 @@ export default class Alert extends Component {
     if (nextProps.alertMessage && this.props.alertMessage !== nextProps.alertMessage) {
       if (this.to) clearTimeout(this.to);
       if (nextProps.timeout !== 'infinite') {
-        this.to = setTimeout(() => this.props.clearAlertMessage(), 5000);
+        this.to = setTimeout(() => this.props.clearAlertMessage(), nextProps.timeout === 'short' ? 2000 : 5000);
       }
     }
   }
