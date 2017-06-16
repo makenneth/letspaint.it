@@ -1,5 +1,5 @@
 # letspaint.it
-Users all over the world can all paint together. Each user is allowed to submit once every 30 seconds. (Not enforced yet.)
+Users all over the world can all paint together. Each user is allowed to submit once every second.
 
 # Stack
 - Go (Reverse Proxy Server(for fun), API Server, and Websocket)
@@ -14,7 +14,5 @@ Users all over the world can all paint together. Each user is allowed to submit 
 - consists of id, username, color (64), pixel index, and timestamp.
 
 # TODO
-- [ ] benchmark compressing data with lz77
-- [x] Add ssl handling in reverse proxy server
-- [x] Auth (OAuth)
 - [ ] Option to create team, and have team chat
+- [ ] Save Image Option
