@@ -2,6 +2,7 @@ package websocket
 
 import (
   "log"
+  "time"
   "golang.org/x/net/websocket"
   "encoding/json"
 )
@@ -12,6 +13,7 @@ type Client struct {
   done chan bool
   send chan *Message
   sendRaw chan []byte
+  preventUntil time.Time
   Id int
   Username string
 }
@@ -28,8 +30,8 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
   done := make(chan bool)
   send := make(chan *Message)
   sendRaw := make(chan []byte)
-
-  return &Client{ws: ws, server: server, done: done, send: send, sendRaw: sendRaw}
+  preventUntil := time.Now().Add(-10 * time.Minute)
+  return &Client{ws: ws, server: server, done: done, send: send, sendRaw: sendRaw, preventUntil: preventUntil}
 }
 
 func (self *Client) Listen() {
@@ -90,8 +92,11 @@ func (self *Client) ListenRead() {
 func (self *Client) HandleMessage(msg *Message) {
   switch(msg.MessageType) {
   case "PAINT_INPUT_MADE":
-    msg.Username = self.Username
-    self.server.Broadcast() <- msg
+    if time.Now().After(self.preventUntil) {
+      msg.Username = self.Username
+      self.server.Broadcast() <- msg
+      self.preventUntil = time.Now().Add(Rate * time.Second)
+    }
     break
   case "SET_USER_INFO":
     if self.Username != "" {

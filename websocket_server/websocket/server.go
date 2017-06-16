@@ -12,6 +12,7 @@ import (
   "bytes"
 )
 
+const Rate = 1
 var mutex sync.Mutex
 type RedisData struct {
   Id int `json:"id"`
@@ -58,6 +59,7 @@ type Server struct {
   connect chan *Client
   done chan *Client
   broadcast chan *Message
+  ranking json.RawMessage
   usernames []string
   colors []int8
 }
@@ -81,7 +83,7 @@ func NewServer(path string) *Server {
   broadcast := make(chan *Message)
   usernames := make([]string, 0)
   colors := make([]int8, 0)
-  return &Server{path, clients, connect, done, broadcast, usernames, colors}
+  return &Server{path, clients, connect, done, broadcast, nil, usernames, colors}
 }
 
 func (self *Server) Listen() {
@@ -112,17 +114,27 @@ func (self *Server) Listen() {
   for {
     select {
       case c := <-self.connect:
+        mutex.Lock()
         self.clients = append(self.clients, c)
+        mutex.Unlock()
         go self.sendInitialState(c)
         go self.sendCountUpdate()
+
+        data, _ := json.Marshal(Rate)
+        c.Write() <- &Message{MessageType: "SET_INPUT_RATE", Data: data}
+        if self.ranking != nil {
+          c.Write() <- &Message{MessageType: "RANKING_UPDATE", Data: self.ranking}
+        }
       case c := <-self.done:
         log.Printf("client %s disconnected", c.Username)
+        mutex.Lock()
         for i := range self.clients {
           if self.clients[i] == c {
             self.clients = append(self.clients[:i], self.clients[i+1:]...)
             break
           }
         }
+        mutex.Unlock()
         go self.sendCountUpdate()
       case m := <-self.broadcast:
         switch m.MessageType {
@@ -155,17 +167,6 @@ func (self *Server) sendCountUpdate() {
 }
 
 func (self *Server) sendInitialState(c *Client) {
-  usernames := make([]string, 10000)
-  colors := make([]int8, 10000)
-  for i := 0; i < 100; i++ {
-    for j := 0; j < 100; j++ {
-      usernames[i * 100 + j] = self.usernames[i * 500 + j]
-      colors[i * 100 + j] = self.colors[i * 500 + j]
-    }
-  }
-  state := &InitialState{&BoardData{colors, usernames}}
-  data, _ := json.Marshal(state)
-  c.Write() <- &Message{MessageType: "INITIAL_STATE", Data: data}
   go func() {
     state := &InitialState{&BoardData{self.colors, self.usernames}}
     data, _ := json.Marshal(state)
@@ -177,6 +178,17 @@ func (self *Server) sendInitialState(c *Client) {
     gzipped := b.Bytes()
     c.WriteGZIP() <- gzipped
   }()
+  usernames := make([]string, 10000)
+  colors := make([]int8, 10000)
+  for i := 0; i < 100; i++ {
+    for j := 0; j < 100; j++ {
+      usernames[i * 100 + j] = self.usernames[i * 500 + j]
+      colors[i * 100 + j] = self.colors[i * 500 + j]
+    }
+  }
+  state := &InitialState{&BoardData{colors, usernames}}
+  data, _ := json.Marshal(state)
+  c.Write() <- &Message{MessageType: "INITIAL_STATE", Data: data}
 }
 
 func (self *Server) updateBoard(data *GridData) {
@@ -210,6 +222,7 @@ func (self *Server) updateRanking() {
       }
     }
     data, _ := json.Marshal(&Ranking{ranking})
+    self.ranking = data
     self.broadcast <- &Message{MessageType: "RANKING_UPDATE", Data: data}
     time.Sleep(10 * time.Second)
   }
