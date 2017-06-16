@@ -3,6 +3,7 @@ import ActionTypes from 'actionTypes';
 const initialState = {
   alertType: null,
   alertMessage: null,
+  timeout: 'normal',
 };
 
 export default function alert(state = initialState, action) {
@@ -14,6 +15,7 @@ export default function alert(state = initialState, action) {
       return {
         alertType: action.alertType,
         alertMessage: action.alertMessage,
+        timeout: action.timeout,
       };
 
     default:

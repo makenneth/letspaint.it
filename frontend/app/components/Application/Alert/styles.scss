@@ -30,8 +30,37 @@
     }
   }
 
+  &.warning {
+    background-color: #fdea8d;
+    color: white;
+    animation: flash 5s infinite;
+    -webkit-animation: flash 5s infinite;
+
+    &:hover {
+      background-color: rgba(#fdea8d, 0.75);
+    }
+  }
+
+
   &.hide {
     opacity: 0;
     visibility: hidden;
   }
+}
+
+
+@-webkit-keyframes flash {
+  0% { opacity: 0; }
+  45% { opacity: 1;}
+  50% { opacity: 0;}
+  95% { opacity: 1;}
+  100% { opacity: 0.5;}
+}
+
+@keyframes flash {
+  0% { opacity: 0; }
+  35% { opacity: 1;}
+  50% { opacity: 0;}
+  85% { opacity: 1;}
+  100% { opacity: 0;}
 }

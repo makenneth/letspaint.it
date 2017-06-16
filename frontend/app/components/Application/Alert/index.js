@@ -5,14 +5,16 @@ import { clearAlertMessage } from 'actions';
 import './styles.scss';
 
 @connect(
-  ({ alert: { alertMessage, alertType } }) => ({ alertMessage, alertType }),
+  ({ alert: { alertMessage, alertType, timeout } }) => ({ alertMessage, alertType }),
   { clearAlertMessage }
 )
 export default class Alert extends Component {
   componentWillReceiveProps(nextProps) {
-    if (!this.props.alertMessage && nextProps.alertMessage) {
+    if (nextProps.alertMessage && this.props.alertMessage !== nextProps.alertMessage) {
       if (this.to) clearTimeout(this.to);
-      this.to = setTimeout(() => this.props.clearAlertMessage(), 5000);
+      if (nextProps.timeout !== 'infinite') {
+        this.to = setTimeout(() => this.props.clearAlertMessage(), 5000);
+      }
     }
   }
 

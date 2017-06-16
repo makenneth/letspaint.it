@@ -2,7 +2,7 @@ import ActionTypes from 'actionTypes';
 import request from 'utils/request';
 import { browserHistory } from 'react-router';
 import { getCookie } from 'utils/cookie'
-import startWebsocket from 'middleware/socketHandler';
+import startWebsocket, { closeWebsocket } from 'middleware/socketHandler';
 import store from 'reduxHandler/store';
 import { startLoading, stopLoading } from './loader';
 import { alertSuccessMessage, alertErrorMessage } from './alert';
@@ -128,6 +128,7 @@ export function signUp(type) {
 export function logOut() {
   return (dispatch) => {
     dispatch(logOutRequest());
+    closeWebsocket();
     return request('/api/logout', {
       method: 'DELETE',
       credentials: 'include',

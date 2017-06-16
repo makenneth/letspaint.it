@@ -6,19 +6,30 @@ export function clearAlertMessage() {
   };
 }
 
-export function alertSuccessMessage(alertMessage) {
+export function alertSuccessMessage(alertMessage, timeout = 'normal') {
   return {
     type: ActionTypes.ALERT_MESSAGE,
     alertMessage,
     alertType: 'success',
+    timeout,
   };
 }
 
-export function alertErrorMessage(alertMessage) {
+export function alertWarningMessage(alertMessage, timeout = 'normal') {
+  return {
+    type: ActionTypes.ALERT_MESSAGE,
+    alertMessage,
+    alertType: 'warning',
+    timeout,
+  };
+}
+
+export function alertErrorMessage(alertMessage, timeout = 'normal') {
   return {
     type: ActionTypes.ALERT_MESSAGE,
     alertMessage,
     alertType: 'error',
+    timeout,
   };
 }
 
