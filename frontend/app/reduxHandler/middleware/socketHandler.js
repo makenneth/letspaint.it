@@ -72,8 +72,8 @@ export default function startWebSocket(store) {
           dispatch(WebSocketActions.userCountUpdate(data));
           break;
         case 'PAINT_INPUT_MADE':
-          dispatch(WebSocketActions.paintInputReceived(data));
           dispatch(updateStatistics(data.username, data.pos));
+          dispatch(WebSocketActions.paintInputReceived(data));
           break;
         case 'INITIAL_STATE':
           dispatch(WebSocketActions.partialInitialStateUpdate(data));

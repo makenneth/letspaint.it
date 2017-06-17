@@ -23,18 +23,18 @@ export default function Canvas(state = initialState, action) {
 
     case ActionTypes.ADJUST_CANVAS_SCALE: {
       const { scale, center } = state;
-      let newX = center[0] * (scale / action.scale);
-      let newY = center[1] * (scale / action.scale);
+      let newX = center[0] * (action.scale / scale);
+      let newY = center[1] * (action.scale / scale);
       const newRadius = IMAGE_WIDTH / 2 / action.scale;
       if (newX < newRadius) {
         newX = newRadius;
-      } else if (newX > center - newRadius) {
-        newX = center - newRadius;
+      } else if (newX > IMAGE_WIDTH - newRadius) {
+        newX = IMAGE_WIDTH - newRadius;
       }
       if (newY < newRadius) {
         newY = newRadius;
-      } else if (newY > center - newRadius) {
-        newY = center - newRadius;
+      } else if (newY > IMAGE_WIDTH - newRadius) {
+        newY = IMAGE_WIDTH - newRadius;
       }
       return {
         ...state,

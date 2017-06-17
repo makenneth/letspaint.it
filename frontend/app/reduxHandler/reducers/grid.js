@@ -57,7 +57,7 @@ export default function Grid(state = initialState, action) {
     case ActionTypes.SET_INPUT_RATE:
       return {
         ...state,
-        rateInterval: action.rate < 500 ? 500 : action.rate,
+        rateInterval: action.rate < 300 ? 300 : action.rate,
       };
 
     default:

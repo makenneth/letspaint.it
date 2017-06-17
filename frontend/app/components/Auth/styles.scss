@@ -57,6 +57,14 @@
   &.google {
     @include button-background(#d34836);
   }
+
+  &.guest {
+    @include button-background(#03afeb);
+    svg {
+      width: 100%;
+      height: 70%;
+    }
+  }
 }
 
 .form {
@@ -98,6 +106,31 @@
       color: blue;
       cursor: pointer;
       margin-left: 5px;
+    }
+  }
+
+  .divider {
+    padding: 10px 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: #666666;
+
+    &:before,
+    &:after {
+      content: " ";
+      width: 100%;
+      height: 1px;
+      background-color: #e0e0e0;
+    }
+
+    &:before {
+      margin-right: 10px;
+    }
+
+    &:after {
+      margin-left: 10px;
     }
   }
 }

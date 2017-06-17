@@ -19,6 +19,10 @@
 
   td:nth-child(2) {
     padding-left: 0.5em;
+    max-width: 95px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   img {

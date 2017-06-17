@@ -7,6 +7,24 @@ import store from 'reduxHandler/store';
 import { startLoading, stopLoading } from './loader';
 import { alertSuccessMessage, alertErrorMessage } from './alert';
 
+export function guestLogin() {
+  return dispatch => (
+    request('/api/login/guest', { method: 'POST' })
+      .then(res => {
+        const { user } = res.data;
+        dispatch(alertSuccessMessage('Logged in successfully'));
+        dispatch(getUserInfoSuccess(user));
+        if (user && user.username) {
+          const websocket = startWebsocket(store);
+          websocket.onopen = function() {
+            dispatch(setUserInfo(user));
+          };
+          browserHistory.push('/');
+        }
+      }, err => dispatch(alertErrorMessage(err.message)))
+  );
+}
+
 export function loadAuth() {
   return dispatch => (
     dispatch(getUserInfo())
@@ -30,7 +48,7 @@ export function logIn(type) {
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/login', {
-      type: 'GET',
+      method: 'GET',
       credentials: 'include',
       query: { type },
     }).then((res) => {
@@ -84,7 +102,7 @@ export function signUp(type) {
   return (dispatch) => {
     dispatch(authRequest());
     return request('/oauth/signup', {
-      type: 'GET',
+      method: 'GET',
       credentials: 'include',
       query: { type },
     }).then(
@@ -181,7 +199,7 @@ export function getUserInfo() {
   return (dispatch) => {
     dispatch(getUserInfoRequest());
     return request('/api/user', {
-      type: 'GET',
+      method: 'GET',
       credentials: 'include',
     });
   };
