@@ -57,12 +57,7 @@ export default class Canvas {
   }
 
   saveImage() {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = IMAGE_WIDTH;
-    tempCanvas.height = IMAGE_HEIGHT;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.putImageData(this.getImageData(2), 0, 0);
-    return tempCanvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+    return this.canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
   }
 
   handleStoreChange = () => {

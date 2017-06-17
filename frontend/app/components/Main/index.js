@@ -132,6 +132,7 @@ export default class Main extends Component {
               pickColor={this.props.pickColor}
               pickedColor={pickedColor}
             />
+            <i className="material-icons" onClick={this.saveImage}>save</i>
             <div className="zoom-control">
               <i
                 className="material-icons"
@@ -153,4 +154,3 @@ export default class Main extends Component {
     );
   }
 }
-// <i className="material-icons" onClick={this.saveImage}>save</i>
