@@ -14,6 +14,16 @@ type IsAvailable struct {
   Available bool `json:"available"`
 }
 
+func GuestLoginHandler(w http.ResponseWriter, r *http.Request, next func(int, error)) {
+  if r.Method != "POST" {
+    next(404, errors.New("Unknown method for the endpoint"))
+    return
+  }
+
+  data := helpers.FormatData(&models.User{Id: 999, Username: "guest", Name: "guest"})
+  w.Write(data)
+}
+
 func GetProfileInfo(w http.ResponseWriter, r *http.Request, next func(int, error)) {
   if r.Method != "GET" {
     next(404, errors.New("Method not supported"))

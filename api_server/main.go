@@ -90,6 +90,7 @@ const html = `
     <div id="root">
       <div class="app-container">
         <h3>letspaint.it</h3>
+        <div style="display:none">Let's paint together pixel by pixel.</div>
       </div>
     </div>
   </body>
@@ -141,6 +142,8 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
     oauth.LogInHandler(w, r, responseCallback)
   case "/oauth/signup":
     oauth.SignUpHandler(w, r, responseCallback)
+  case "/api/login/guest":
+    users.GuestLoginHandler(w, r, responseCallback)
   case "/api/logout":
     oauth.LogOutHandler(w, r, responseCallback)
   case "/api/user":
