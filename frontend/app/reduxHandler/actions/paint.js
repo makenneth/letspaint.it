@@ -1,8 +1,10 @@
 import ActionTypes from 'actionTypes';
-
+import { updateStatistics } from './statistics';
 export function paintInputMade(input) {
   return (dispatch, getState) => {
-    dispatch(makePaintInput(input));
+    const { info: { username } } = getState().auth;
+    dispatch(updateStatistics(username, input.pos));
+    dispatch(makePaintInput(Object.assign({}, input, { username })));
   };
 }
 

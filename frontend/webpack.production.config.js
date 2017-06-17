@@ -59,7 +59,7 @@ module.exports = {
       'process.env': {
         'NODE_ENV': JSON.stringify('production'),
         'DEVTOOLS': false,
-        'WS_URL': JSON.stringify('ws://127.0.0.1/ws')
+        'WS_URL': JSON.stringify('wss://letspaint.it/ws')
       }
     }),
     new webpack.optimize.DedupePlugin(),
